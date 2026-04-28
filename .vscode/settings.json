@@ -1,4 +1,9 @@
 {
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "1. 必须使用中文生成提交信息。 2. 使用 AngularJS's commit message 风格，比如 feat(auth): 这是总结信息\n- 这是第一条详细信息\n- 这是第二条详细信息"
+    }
+  ],
   "editor.formatOnSave": true,
   "cSpell.words": [
     "stdlib"

@@ -15,9 +15,15 @@ from typing import Any
 
 
 def parse_args() -> argparse.Namespace:
+    # First pass: extract global options from anywhere in argv so ordering is flexible.
+    global_parser = argparse.ArgumentParser(add_help=False)
+    global_parser.add_argument("--base-url", default=os.environ.get("DATADATA_BASE_URL", "https://www.datadata.com/api/v1"))
+    global_parser.add_argument("--api-key", default=os.environ.get("DATADATA_API_KEY"))
+    global_opts, remaining = global_parser.parse_known_args()
+
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base-url", default=os.environ.get("DATADATA_BASE_URL", "https://www.datadata.com/api/v1"))
-    parser.add_argument("--api-key", default=os.environ.get("DATADATA_API_KEY"))
+    parser.add_argument("--base-url", default=global_opts.base_url)
+    parser.add_argument("--api-key", default=global_opts.api_key)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     datasource_info_parser = subparsers.add_parser("get-datasource-info", help="Fetch datasource metadata.")
@@ -53,7 +59,12 @@ def parse_args() -> argparse.Namespace:
         help="Result format to download for the execution ID.",
     )
     result_parser.add_argument("--output-path")
-    return parser.parse_args()
+    result_parser.add_argument(
+        "--timeout",
+        type=int,
+        help="Max seconds to wait for the execution to complete. If exceeded, the backend returns a timeout error.",
+    )
+    return parser.parse_args(remaining)
 
 
 def build_url(base_url: str, path: str, query: dict[str, str] | None = None) -> str:
@@ -219,8 +230,11 @@ def create_execution(
     return execution_id, response
 
 
-def fetch_result_artifact(base_url: str, api_key: str, execution_id: str, fmt: str) -> tuple[bytes, str]:
-    url = build_url(base_url, f"/executions/{execution_id}/result", {"format": fmt})
+def fetch_result_artifact(base_url: str, api_key: str, execution_id: str, fmt: str, timeout: int | None = None) -> tuple[bytes, str]:
+    query: dict[str, str] = {"format": fmt}
+    if timeout is not None:
+        query["timeout"] = str(timeout)
+    url = build_url(base_url, f"/executions/{execution_id}/result", query)
     if fmt == "csv":
         text = request_text(url, api_key)
         return text.encode("utf-8"), "text/csv"
@@ -314,7 +328,7 @@ def run_describe_table(args: argparse.Namespace) -> int:
 
 def run_get_execution_result(args: argparse.Namespace) -> int:
     try:
-        result = fetch_result_artifact(args.base_url, args.api_key, args.execution_id, args.format)
+        result = fetch_result_artifact(args.base_url, args.api_key, args.execution_id, args.format, args.timeout)
     except Exception as exc:  # noqa: BLE001
         print(
             json.dumps(

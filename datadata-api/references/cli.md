@@ -71,6 +71,7 @@ Prints a JSON object with `executionId` and the full execution response.
 | `--execution-id` | Yes      | —           | Execution ID from `execute-adhoc` |
 | `--format`       | No       | `ndjson`    | `ndjson` or `csv`                 |
 | `--output-path`  | No       | system temp | Output file path                  |
+| `--timeout`      | No       | —           | Seconds to wait for execution     |
 
 ```bash
 python3 scripts/datadata_query.py get-execution-result --execution-id "CaU6DR..." --format ndjson

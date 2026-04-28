@@ -1,6 +1,6 @@
 # Datadata Skills
 
-Claude Code skills for the Datadata analytics platform.
+Claude Code skills for the [Datadata](https://www.datadata.com) analytics platform.
 
 ## Skills
 
@@ -17,8 +17,11 @@ python3 datadata-api/scripts/datadata_query.py execute-adhoc \
   --script "select * from orders limit 20"
 ```
 
-See [datadata-api/SKILL.md](./datadata-api/SKILL.md) for full usage.
+See [datadata-api/SKILL.md](./datadata-api/SKILL.md) for full usage, subcommands, and parameter reference.
 
-## Usage
+## Development
 
-Place this repo in your Claude Code skills directory, or symlink individual skills as needed.
+```bash
+# Deploy skill changes to ~/.claude/skills/
+./scripts/sync.sh
+```

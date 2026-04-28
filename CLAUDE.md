@@ -4,37 +4,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository purpose
 
-This is a Claude Code **skills** repository providing agent skills for the Datadata analytics platform. Each skill lives in its own directory with a `SKILL.md`, optional `agents/` config, `references/` docs, and `scripts/`.
+Claude Code **skills** repository for the Datadata analytics platform. Each skill lives in its own directory with a `SKILL.md`, optional `agents/` config, `references/` docs, and `scripts/`.
 
-## Skills
+## Deploying changes
 
-### `datadata-api`
+```bash
+./scripts/sync.sh
+```
 
-Run SQL via the Datadata API using `datadata-api/scripts/datadata_query.py` (stdlib-only Python, no dependencies required).
+Rsyncs `datadata-api/` into `~/.claude/skills/`. Run after editing scripts, SKILL.md, references, or agent configs.
 
-**Subcommands** (see `datadata-api/references/cli.md` for full arg reference):
+## Skill: datadata-api
 
-| Subcommand             | Purpose                                    |
-| ---------------------- | ------------------------------------------ |
-| `get-datasource-info`  | Inspect datasource metadata                |
-| `list-tables`          | List tables in a schema                    |
-| `describe-table`       | Describe columns of a table                |
-| `execute-adhoc`        | Create an execution, returns `executionId` |
-| `get-execution-result` | Download result artifact (NDJSON/CSV)      |
+Run SQL against Datadata via `datadata-api/scripts/datadata_query.py` (stdlib-only Python, zero dependencies). Auth via `DATADATA_API_KEY` env var or `--api-key` flag. Base URL defaults to `https://www.datadata.com/api/v1`, override via `DATADATA_BASE_URL` env var or `--base-url`.
 
-**Key conventions** (detailed in `datadata-api/SKILL.md`):
+### Architecture of `datadata_query.py`
 
-- Auth via `--api-key` flag or `DATADATA_API_KEY` env var (required); base URL defaults to `https://www.datadata.com/api/v1`, override via `DATADATA_BASE_URL` env var or `--base-url` flag (optional, for testing only; do NOT ask user)
-- `--datasource` uses format `DATASOURCE_ID:ATTACH_ALIAS` (repeatable); SQL references the alias, not the datasource name
-- Query engine is `duckdb` by default; use `clickhouse` only for ClickHouse datasources (which cannot cross-source join)
-- Results: `--format ndjson` for searchable output, `csv` for exports; defaults to `ndjson`
-- Never feed large result sets into model context — save to file, search locally with `rg`, then summarize
-
-**Architecture of `datadata_query.py`**:
-
-- Global args (`--base-url`, `--api-key`) must appear before subcommand
-- `request_json()`/`request_text()`/`request_bytes()` handle HTTP via `urllib.request` with `X-Datadata-Api-key` header
-- `create_execution()` POSTs to `/queries/execute-adhoc`, then recursively searches response for an execution ID
+- `main()` dispatches subcommands via a flat if-elif chain on `args.command`. To add a subcommand, register a subparser in `parse_args()` and add a corresponding `run_*` branch in `main()`.
+- Global args (`--base-url`, `--api-key`) must appear **before** the subcommand on the CLI
+- `request_json()` / `request_text()` / `request_bytes()` — three HTTP helpers using `urllib.request` with `X-Datadata-Api-key` header. `request_json` auto-detects NDJSON vs JSON responses.
+- `create_execution()` POSTs to `/queries/execute-adhoc`, then recursively searches the response for an execution ID via `find_execution_id()`
 - `fetch_result_artifact()` GETs `/executions/{id}/result`; saves to temp dir as `datadata-{id}.ndjson` or `.csv`
 - `parse_datasource_bindings()` splits `ID:ALIAS` strings into `[{datasourceId, attachAlias}]`
 - Exit codes: 0 = success, 1 = result fetch error, 2 = missing/invalid args
+
+### Agent config
+
+`datadata-api/agents/openai.yaml` defines the agent interface (display name, description, default prompt) for OpenAI-compatible agent runners.
+
+### Key conventions
+
+Detailed rules live in `datadata-api/SKILL.md` (parameter scoping, query engine selection, datasource binding syntax, result handling, safety rules). CLI argument reference in `datadata-api/references/cli.md`. Do not duplicate those rules here — the skill system loads SKILL.md directly.

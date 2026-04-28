@@ -1,4 +1,11 @@
 interface:
   display_name: "Datadata API"
-  short_description: "Run SQL queries against Datadata via API"
-  default_prompt: "Use $datadata-api to run this SQL on Datadata, then return a saved NDJSON or CSV result artifact."
+  short_description: "Run SQL queries and explore datasources against Datadata via CLI"
+  default_prompt: |
+    Use the datadata-api skill to run this SQL query on Datadata and return a saved NDJSON or CSV result artifact.
+
+    Before writing SQL, inspect the datasource schema with list-tables and describe-table when the table structure is uncertain. Use DuckDB SQL by default; switch to ClickHouse SQL only for ClickHouse datasources.
+
+    Bind datasources with `--datasource "ID:alias"` (repeatable) and reference them in SQL by alias. The API key must start with `ak_` — never pass a non-`ak_` string as the API key.
+
+    Executions are async: if get-execution-result fails with "still running", wait a few seconds and retry once. Never run destructive SQL unless explicitly asked.
