@@ -1,0 +1,4 @@
+interface:
+  display_name: "Datadata API"
+  short_description: "Run SQL queries against Datadata via API"
+  default_prompt: "Use $datadata-api to run this SQL on Datadata, then return a saved NDJSON or CSV result artifact."

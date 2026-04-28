@@ -1,0 +1,24 @@
+# Datadata Skills
+
+Claude Code skills for the Datadata analytics platform.
+
+## Skills
+
+### datadata-api
+
+Run SQL or other scripts against Datadata via CLI. Creates adhoc executions and downloads results as NDJSON or CSV.
+
+```bash
+export DATADATA_API_KEY="..."
+python3 datadata-api/scripts/datadata_query.py execute-adhoc \
+  --script-type sql \
+  --query-engine duckdb \
+  --datasource "ds_123:orders" \
+  --script "select * from orders limit 20"
+```
+
+See [datadata-api/SKILL.md](./datadata-api/SKILL.md) for full usage.
+
+## Usage
+
+Place this repo in your Claude Code skills directory, or symlink individual skills as needed.
