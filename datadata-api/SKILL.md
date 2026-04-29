@@ -1,6 +1,6 @@
 ---
 name: datadata-api
-description: Query Datadata via CLI — run adhoc SQL, inspect datasource metadata, list and describe tables, and download results as NDJSON/CSV. Use this skill whenever the user mentions Datadata, wants to query data, explore datasources or table schemas, or fetch query results. Triggers on: Datadata, data exploration, SQL queries against datasources, table inspection, execution results.
+description: "Query Datadata via CLI — run adhoc SQL, inspect datasource metadata, list and describe tables, and download results as NDJSON/CSV. Use this skill whenever the user mentions Datadata, wants to query data, explore datasources or table schemas, or fetch query results. Triggers on: Datadata, data exploration, SQL queries against datasources, table inspection, execution results."
 ---
 
 # Datadata API
