@@ -6,22 +6,31 @@ Claude Code skills for the [Datadata](https://www.datadata.com) analytics platfo
 
 ### datadata-api
 
-Run SQL or other scripts against Datadata via CLI. Creates adhoc executions and downloads results as NDJSON or CSV.
+通过自然语言与 Datadata 平台交互。安装后在 Claude Code 中可直接用对话方式完成以下操作：
+
+- **探查数据源** — 查看数据源元数据、列出 schema 中的表、描述表结构
+- **执行查询** — 对 DuckDB 或 ClickHouse 数据源运行 SQL，支持跨源 join
+- **下载结果** — 获取执行结果，支持 NDJSON 和 CSV 格式
+- **结果检索** — 在本地用 `rg` 等工具搜索已保存的结果文件
 
 ```bash
-export DATADATA_API_KEY="..."
-python3 datadata-api/scripts/datadata_query.py execute-adhoc \
-  --script-type sql \
-  --query-engine duckdb \
-  --datasource "ds_123:orders" \
-  --script "select * from orders limit 20"
+npx skills add https://github.com/datadata-team/datadata-skills/datadata-api
+
+# 如果您使用 pnpm 和 Claude Code 可以通过下面的命令安装
+pnpx skills add https://github.com/datadata-team/datadata-skills/datadata-api --agent claude-code
 ```
 
-See [datadata-api/SKILL.md](./datadata-api/SKILL.md) for full usage, subcommands, and parameter reference.
+详细用法和命令参考见 [datadata-api/SKILL.md](./datadata-api/SKILL.md)。
 
-## Development
+### 获取 API Key
+
+在 Datadata 平台中创建 API Key，权限需勾选 `queries:execute-adhoc`、`executions:get`、`datasources:read`：
+
+1. 登录 [datadata.com](https://www.datadata.com)
+2. 头像 → Settings → 左侧 "API Keys" → 创建新 Key
+3. 勾选所需权限后创建
+4. 配置到环境变量：
 
 ```bash
-# Deploy skill changes to ~/.claude/skills/
-./scripts/sync.sh
+export DATADATA_API_KEY="ak_..."
 ```
