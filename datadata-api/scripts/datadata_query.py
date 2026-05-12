@@ -64,6 +64,20 @@ def parse_args() -> argparse.Namespace:
         type=int,
         help="Max seconds to wait for the execution to complete. If exceeded, the backend returns a timeout error.",
     )
+
+    create_table_parser = subparsers.add_parser("create-table", help="Create a new table in a data space.")
+    create_table_parser.add_argument("--datasource-id", required=True)
+    create_table_parser.add_argument("--table-name", required=True)
+    create_table_parser.add_argument("--columns", required=True, help='JSON array: [{"columnName": "...", "columnType": "..."}]')
+
+    insert_rows_parser = subparsers.add_parser("insert-rows", help="Insert rows into a data space table.")
+    insert_rows_parser.add_argument("--datasource-id", required=True)
+    insert_rows_parser.add_argument("--table-name", required=True)
+    insert_rows_parser.add_argument("--columns", required=True, help='JSON array of column names: ["col1", "col2"]')
+    insert_rows_parser.add_argument("--rows", required=True, help="JSON 2D array of row data")
+
+    scan_parser = subparsers.add_parser("scan-datasource", help="Trigger an async schema scan for a datasource.")
+    scan_parser.add_argument("--datasource-id", required=True)
     return parser.parse_args(remaining)
 
 
@@ -90,6 +104,41 @@ def fetch_describe_table(base_url: str, api_key: str, datasource_id: str, schema
         "tableName": table_name,
     }
     return request_json(build_url(base_url, f"/datasources/{datasource_id}/describe-table", query), api_key)
+
+
+def fetch_scan_datasource(base_url: str, api_key: str, datasource_id: str) -> Any:
+    return request_json(
+        build_url(base_url, f"/datasources/{datasource_id}/scan"),
+        api_key,
+        method="POST",
+    )
+
+
+def fetch_create_table(base_url: str, api_key: str, datasource_id: str, table_name: str, columns: list[dict[str, str]]) -> Any:
+    payload = {
+        "tableName": table_name,
+        "columns": columns,
+    }
+    return request_json(
+        build_url(base_url, f"/data-spaces/{datasource_id}/create-table"),
+        api_key,
+        method="POST",
+        payload=payload,
+    )
+
+
+def fetch_insert_rows(base_url: str, api_key: str, datasource_id: str, table_name: str, columns: list[str], rows: list[list[Any]]) -> Any:
+    payload = {
+        "tableName": table_name,
+        "columns": columns,
+        "rows": rows,
+    }
+    return request_json(
+        build_url(base_url, f"/data-spaces/{datasource_id}/insert-rows"),
+        api_key,
+        method="POST",
+        payload=payload,
+    )
 
 
 def request_json(url: str, api_key: str, method: str = "GET", payload: dict[str, Any] | None = None) -> Any:
@@ -363,6 +412,46 @@ def run_get_execution_result(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_create_table(args: argparse.Namespace) -> int:
+    try:
+        columns = json.loads(args.columns)
+    except json.JSONDecodeError as exc:
+        print(f"Invalid --columns JSON: {exc}", file=sys.stderr)
+        return 2
+    if not isinstance(columns, list):
+        print("--columns must be a JSON array", file=sys.stderr)
+        return 2
+    fetch_create_table(args.base_url, args.api_key, args.datasource_id, args.table_name, columns)
+    print(json.dumps({"status": "ok", "tableName": args.table_name}, ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_scan_datasource(args: argparse.Namespace) -> int:
+    response = fetch_scan_datasource(args.base_url, args.api_key, args.datasource_id)
+    print(json.dumps(response, ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_insert_rows(args: argparse.Namespace) -> int:
+    try:
+        columns = json.loads(args.columns)
+        rows = json.loads(args.rows)
+    except json.JSONDecodeError as exc:
+        print(f"Invalid JSON: {exc}", file=sys.stderr)
+        return 2
+    if not isinstance(columns, list) or not isinstance(rows, list):
+        print("--columns must be a JSON array and --rows must be a JSON 2D array", file=sys.stderr)
+        return 2
+    response = fetch_insert_rows(args.base_url, args.api_key, args.datasource_id, args.table_name, columns, rows)
+    print(json.dumps({
+        "status": "ok",
+        "tableName": args.table_name,
+        "inserted": len(rows),
+        "response": response,
+    }, ensure_ascii=False, indent=2))
+    return 0
+
+
 def main() -> int:
     args = parse_args()
     code = require_common_args(args)
@@ -378,6 +467,12 @@ def main() -> int:
         return run_execute_adhoc(args)
     if args.command == "get-execution-result":
         return run_get_execution_result(args)
+    if args.command == "create-table":
+        return run_create_table(args)
+    if args.command == "insert-rows":
+        return run_insert_rows(args)
+    if args.command == "scan-datasource":
+        return run_scan_datasource(args)
     print(f"Unknown command: {args.command}", file=sys.stderr)
     return 2
 
