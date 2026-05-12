@@ -16,16 +16,16 @@ Query Datadata through `scripts/datadata_query.py`. See [references/cli.md](./re
 
 ## Subcommands
 
-| Subcommand             | Purpose                                    |
-| ---------------------- | ------------------------------------------ |
-| `get-datasource-info`  | Inspect datasource metadata                |
-| `list-tables`          | List tables in a schema                    |
-| `describe-table`       | Describe columns of a table                |
-| `create-table`         | Create a table in a data space             |
-| `insert-rows`          | Insert rows into a data space table        |
+| Subcommand             | Purpose                                       |
+| ---------------------- | --------------------------------------------- |
+| `get-datasource-info`  | Inspect datasource metadata                   |
+| `list-tables`          | List tables in a schema                       |
+| `describe-table`       | Describe columns of a table                   |
+| `create-table`         | Create a table in a data space                |
+| `insert-rows`          | Insert rows into a data space table           |
 | `scan-datasource`      | Trigger an async schema scan for a datasource |
 | `execute-adhoc`        | Create and run a query, returns `executionId` |
-| `get-execution-result` | Download execution result artifact         |
+| `get-execution-result` | Download execution result artifact            |
 
 ## Workflow
 
@@ -200,7 +200,7 @@ If `DATADATA_API_KEY` is not set, print:
 ```
 1. 登录 https://www.datadata.com
 2. 头像 → Settings → 左侧 "API Keys" → 创建新 Key
-3. 权限勾选: queries:execute-adhoc, executions:get, datasources:read, datasources:scan, data-spaces:write
+3. 权限勾选: queries:execute-adhoc, executions:get, datasources:read, datasource:scan, data-spaces:write
 4. 然后 export DATADATA_API_KEY="<key>" 或直接告诉我。
 ```
 

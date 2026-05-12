@@ -36,18 +36,18 @@ def _request(url, method="GET", payload=None):
 
 ## Endpoint summary
 
-| Group         | Method | Path                                                           | Auth permission         | CLI subcommand         |
-| ------------- | ------ | -------------------------------------------------------------- | ----------------------- | ---------------------- |
-| Datasource    | GET    | `/datasources/{id}/info`                                       | `datasources:read`      | `get-datasource-info`  |
-| Datasource    | GET    | `/datasources/{id}/list-tables`                                | `datasources:read`      | `list-tables`          |
-| Datasource    | GET    | `/datasources/{id}/describe-table`                             | `datasources:read`      | `describe-table`       |
-| Datasource    | POST   | `/datasources/{id}/scan`                                       | `datasources:scan`      | `scan-datasource`      |
-| Execution     | POST   | `/queries/execute-adhoc`                                       | `queries:execute-adhoc` | `execute-adhoc`        |
-| Execution     | GET    | `/executions/{id}/result`                                      | `executions:get`        | `get-execution-result` |
-| Data Spaces   | POST   | `/data-spaces/{id}/create-table`                               | `data-spaces:write`     | `create-table`         |
-| Data Spaces   | POST   | `/data-spaces/{id}/describe-table`                             | `data-spaces:write`     | — (direct only)        |
-| Data Spaces   | POST   | `/data-spaces/{id}/drop-table`                                 | `data-spaces:write`     | — (direct only)        |
-| Data Spaces   | POST   | `/data-spaces/{id}/insert-rows`                                | `data-spaces:write`     | `insert-rows`          |
+| Group       | Method | Path                               | Auth permission         | CLI subcommand         |
+| ----------- | ------ | ---------------------------------- | ----------------------- | ---------------------- |
+| Datasource  | GET    | `/datasources/{id}/info`           | `datasources:read`      | `get-datasource-info`  |
+| Datasource  | GET    | `/datasources/{id}/list-tables`    | `datasources:read`      | `list-tables`          |
+| Datasource  | GET    | `/datasources/{id}/describe-table` | `datasources:read`      | `describe-table`       |
+| Datasource  | POST   | `/datasources/{id}/scan`           | `datasource:scan`       | `scan-datasource`      |
+| Execution   | POST   | `/queries/execute-adhoc`           | `queries:execute-adhoc` | `execute-adhoc`        |
+| Execution   | GET    | `/executions/{id}/result`          | `executions:get`        | `get-execution-result` |
+| Data Spaces | POST   | `/data-spaces/{id}/create-table`   | `data-spaces:write`     | `create-table`         |
+| Data Spaces | POST   | `/data-spaces/{id}/describe-table` | `data-spaces:write`     | — (direct only)        |
+| Data Spaces | POST   | `/data-spaces/{id}/drop-table`     | `data-spaces:write`     | — (direct only)        |
+| Data Spaces | POST   | `/data-spaces/{id}/insert-rows`    | `data-spaces:write`     | `insert-rows`          |
 
 ---
 
@@ -157,9 +157,9 @@ print(data["taskId"])  # Asynq task ID
 }
 ```
 
-| Status | Description      |
-| ------ | ---------------- |
-| 200    | Scan task created |
+| Status | Description          |
+| ------ | -------------------- |
+| 200    | Scan task created    |
 | 404    | Datasource not found |
 
 ---
@@ -172,12 +172,12 @@ print(data["taskId"])  # Asynq task ID
 
 Body:
 
-| Field         | Type              | Required | Default   | Description                                          |
-| ------------- | ----------------- | -------- | --------- | ---------------------------------------------------- |
-| `script`      | string            | Yes      | —         | SQL or script content                                |
-| `scriptType`  | string            | No       | `sql`     | Script type                                          |
-| `queryEngine` | string            | No       | `duckdb`  | `duckdb` or `clickhouse`                             |
-| `datasources` | array of bindings | No       | `[]`      | `[{datasourceId, attachAlias}]` — cross-source joins |
+| Field         | Type              | Required | Default  | Description                                          |
+| ------------- | ----------------- | -------- | -------- | ---------------------------------------------------- |
+| `script`      | string            | Yes      | —        | SQL or script content                                |
+| `scriptType`  | string            | No       | `sql`    | Script type                                          |
+| `queryEngine` | string            | No       | `duckdb` | `duckdb` or `clickhouse`                             |
+| `datasources` | array of bindings | No       | `[]`     | `[{datasourceId, attachAlias}]` — cross-source joins |
 
 CLI:
 
@@ -208,10 +208,10 @@ execution_id = response.get("id") or response.get("executionId")
 
 `GET /executions/{executionId}/result?format={fmt}&timeout={sec}`
 
-| Query param | Required | Default   | Description                              |
-| ----------- | -------- | --------- | ---------------------------------------- |
-| `format`    | No       | `ndjson`  | `ndjson` or `csv`                        |
-| `timeout`   | No       | —         | Seconds for backend to wait for completion |
+| Query param | Required | Default  | Description                                |
+| ----------- | -------- | -------- | ------------------------------------------ |
+| `format`    | No       | `ndjson` | `ndjson` or `csv`                          |
+| `timeout`   | No       | —        | Seconds for backend to wait for completion |
 
 CLI:
 
@@ -253,10 +253,10 @@ If the query is still running after `timeout`, the API returns a timeout error. 
 
 Body:
 
-| Field       | Type  | Required | Description                                              |
-| ----------- | ----- | -------- | -------------------------------------------------------- |
-| `tableName` | string| Yes      | Table name                                               |
-| `columns`   | array | Yes      | `[{"columnName": "...", "columnType": "..."}]`           |
+| Field       | Type   | Required | Description                                    |
+| ----------- | ------ | -------- | ---------------------------------------------- |
+| `tableName` | string | Yes      | Table name                                     |
+| `columns`   | array  | Yes      | `[{"columnName": "...", "columnType": "..."}]` |
 
 Valid `columnType` values: `INTEGER`, `VARCHAR`, `DOUBLE`, `BOOLEAN`, `TIMESTAMP`, `BIGINT`, `FLOAT`, etc.
 
@@ -282,9 +282,9 @@ payload = {
 _request(f"{BASE_URL}/data-spaces/123/create-table", method="POST", payload=payload)
 ```
 
-| Status | Description      |
-| ------ | ---------------- |
-| 204    | Created          |
+| Status | Description          |
+| ------ | -------------------- |
+| 204    | Created              |
 | 404    | Data space not found |
 | 409    | Table already exists |
 
@@ -324,9 +324,9 @@ payload = {"tableName": "products"}
 _request(f"{BASE_URL}/data-spaces/123/drop-table", method="POST", payload=payload)
 ```
 
-| Status | Description      |
-| ------ | ---------------- |
-| 200    | Dropped          |
+| Status | Description          |
+| ------ | -------------------- |
+| 200    | Dropped              |
 | 404    | Data space not found |
 
 ### Insert rows
@@ -367,19 +367,19 @@ payload = {
 _request(f"{BASE_URL}/data-spaces/123/insert-rows", method="POST", payload=payload)
 ```
 
-| Status | Description      |
-| ------ | ---------------- |
-| 200    | Inserted         |
-| 400    | Table not found  |
+| Status | Description          |
+| ------ | -------------------- |
+| 200    | Inserted             |
+| 400    | Table not found      |
 | 404    | Data space not found |
 
 ---
 
 ## Common errors
 
-| Status | Meaning        |
-| ------ | -------------- |
-| 401    | Unauthenticated — API key missing or invalid |
-| 403    | Forbidden — API key lacks required permission |
+| Status | Meaning                                                                             |
+| ------ | ----------------------------------------------------------------------------------- |
+| 401    | Unauthenticated — API key missing or invalid                                        |
+| 403    | Forbidden — API key lacks required permission                                       |
 | 404    | Endpoint does not exist at this base URL (do NOT retry — check `DATADATA_BASE_URL`) |
-| 5xx    | Server error — retry once after 3s, then report the `executionId` if applicable |
+| 5xx    | Server error — retry once after 3s, then report the `executionId` if applicable     |
