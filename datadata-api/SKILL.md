@@ -11,7 +11,7 @@ Query Datadata through `scripts/datadata_query.py`. See [references/cli.md](./re
 
 - **Datasource** — A data source that queries target. Different datasource types (ducklake, MySQL, ClickHouse, CSV, etc.) have different table naming conventions.
 - **Data space** — A special datasource of type `ducklake` that supports user-created tables and data insertion. The data-space name is the datasource's `name`. Querying data within a data space uses the exact same flow as any other datasource: bind the datasource in a query, then execute it.
-- **Query** (`execute-adhoc`) — An abstraction that bundles a SQL script, datasource bindings, and a query engine type. A query is not executed until you create an execution from it.
+- **Query** (`execute-adhoc`) — **Read-only** abstraction that bundles a SQL script (SELECT only), datasource bindings, and a query engine type. A query is not executed until you create an execution from it.
 - **Execution** (`get-execution-result`) — An abstraction over running a query. Each call to `execute-adhoc` creates an execution and returns an `executionId`. Use that ID to fetch the result asynchronously.
 
 ## Subcommands
@@ -22,9 +22,9 @@ Query Datadata through `scripts/datadata_query.py`. See [references/cli.md](./re
 | `list-tables`          | List tables in a schema                       |
 | `describe-table`       | Describe columns of a table                   |
 | `create-table`         | Create a table in a data space                |
-| `insert-rows`          | Insert rows into a data space table           |
+| `insert-rows`          | **批量插入**数据到 data space 表 — 唯一的数据写入接口 |
 | `scan-datasource`      | Trigger an async schema scan for a datasource |
-| `execute-adhoc`        | Create and run a query, returns `executionId` |
+| `execute-adhoc`        | **Read-only query execution** — SELECT only. Never use for INSERT/UPDATE/DELETE |
 | `get-execution-result` | Download execution result artifact            |
 
 ## Workflow
@@ -168,6 +168,18 @@ memory.main.attachAlias
 - Use `*` to reference all columns from a short name: `SELECT * FROM sales`
 - When joining across datasources, use fully qualified names to avoid ambiguity
 
+### Identifier quoting
+
+Always quote identifiers (table names, column names, aliases) that could conflict with SQL keywords. Use double quotes for standard SQL identifiers and backticks for MySQL-compatible syntax. When in doubt, quote all identifiers — it's harmless and prevents subtle breakage when a column name happens to be a reserved word (e.g. `"from"`, `"order"`, `"group"`, `"select"`, `"user"`, `"status"`, `"key"`).
+
+```sql
+-- Good: quoted identifiers
+SELECT "id", "name", "status" FROM "sales" WHERE "order" = 'abc'
+
+-- Bad: unquoted "status" and "order" may conflict with reserved words
+SELECT id, name, status FROM sales WHERE order = 'abc'
+```
+
 ### Result handling
 
 - `--format ndjson` for searchable results; `csv` for exports
@@ -176,6 +188,8 @@ memory.main.attachAlias
 
 ### Safety
 
+- `execute-adhoc` is **read-only**. Never use it for INSERT, UPDATE, DELETE, DROP, ALTER, or any data-modifying SQL
+- Only `insert-rows` API / subcommand can insert data — it supports **批量插入** (batch insert)
 - Never run destructive SQL unless explicitly requested
 - Never silently rewrite business logic in SQL
 

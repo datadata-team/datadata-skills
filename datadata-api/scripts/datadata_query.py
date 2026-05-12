@@ -17,7 +17,10 @@ from typing import Any
 def parse_args() -> argparse.Namespace:
     # First pass: extract global options from anywhere in argv so ordering is flexible.
     global_parser = argparse.ArgumentParser(add_help=False)
-    global_parser.add_argument("--base-url", default=os.environ.get("DATADATA_BASE_URL", "https://www.datadata.com/api/v1"))
+    global_parser.add_argument(
+        "--base-url",
+        default=os.environ.get("DATADATA_BASE_URL", "https://www.datadata.com/api/v1"),
+    )
     global_parser.add_argument("--api-key", default=os.environ.get("DATADATA_API_KEY"))
     global_opts, remaining = global_parser.parse_known_args()
 
@@ -26,19 +29,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--api-key", default=global_opts.api_key)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    datasource_info_parser = subparsers.add_parser("get-datasource-info", help="Fetch datasource metadata.")
+    datasource_info_parser = subparsers.add_parser(
+        "get-datasource-info", help="Fetch datasource metadata."
+    )
     datasource_info_parser.add_argument("--datasource-id", required=True)
 
-    list_tables_parser = subparsers.add_parser("list-tables", help="List tables for a datasource.")
+    list_tables_parser = subparsers.add_parser(
+        "list-tables", help="List tables for a datasource."
+    )
     list_tables_parser.add_argument("--datasource-id", required=True)
     list_tables_parser.add_argument("--schema-name")
 
-    describe_table_parser = subparsers.add_parser("describe-table", help="Describe a table for a datasource.")
+    describe_table_parser = subparsers.add_parser(
+        "describe-table", help="Describe a table for a datasource."
+    )
     describe_table_parser.add_argument("--datasource-id", required=True)
     describe_table_parser.add_argument("--schema-name", required=True)
     describe_table_parser.add_argument("--table-name", required=True)
 
-    execute_parser = subparsers.add_parser("execute-adhoc", help="Create an adhoc execution from a script.")
+    execute_parser = subparsers.add_parser(
+        "execute-adhoc", help="Create an adhoc execution from a script."
+    )
     execute_parser.add_argument("--script-type", default="sql")
     execute_parser.add_argument("--query-engine", default="duckdb")
     execute_parser.add_argument(
@@ -50,7 +61,9 @@ def parse_args() -> argparse.Namespace:
     )
     execute_parser.add_argument("--script", required=True)
 
-    result_parser = subparsers.add_parser("get-execution-result", help="Fetch a result artifact for an execution.")
+    result_parser = subparsers.add_parser(
+        "get-execution-result", help="Fetch a result artifact for an execution."
+    )
     result_parser.add_argument("--execution-id", required=True)
     result_parser.add_argument(
         "--format",
@@ -65,18 +78,34 @@ def parse_args() -> argparse.Namespace:
         help="Max seconds to wait for the execution to complete. If exceeded, the backend returns a timeout error.",
     )
 
-    create_table_parser = subparsers.add_parser("create-table", help="Create a new table in a data space.")
+    create_table_parser = subparsers.add_parser(
+        "create-table", help="Create a new table in a data space."
+    )
     create_table_parser.add_argument("--datasource-id", required=True)
     create_table_parser.add_argument("--table-name", required=True)
-    create_table_parser.add_argument("--columns", required=True, help='JSON array: [{"columnName": "...", "columnType": "..."}]')
+    create_table_parser.add_argument(
+        "--columns",
+        required=True,
+        help='JSON array: [{"columnName": "...", "columnType": "..."}]',
+    )
 
-    insert_rows_parser = subparsers.add_parser("insert-rows", help="Insert rows into a data space table.")
+    insert_rows_parser = subparsers.add_parser(
+        "insert-rows", help="Insert rows into a data space table."
+    )
     insert_rows_parser.add_argument("--datasource-id", required=True)
     insert_rows_parser.add_argument("--table-name", required=True)
-    insert_rows_parser.add_argument("--columns", required=True, help='JSON array of column names: ["col1", "col2"]')
-    insert_rows_parser.add_argument("--rows", required=True, help="JSON 2D array of row data")
+    insert_rows_parser.add_argument(
+        "--columns", required=True, help='JSON array of column names: ["col1", "col2"]'
+    )
+    insert_rows_parser.add_argument(
+        "--rows",
+        required=True,
+        help="JSON 2D array of row data: [[col1, col2], [col1, col2], ...]]",
+    )
 
-    scan_parser = subparsers.add_parser("scan-datasource", help="Trigger an async schema scan for a datasource.")
+    scan_parser = subparsers.add_parser(
+        "scan-datasource", help="Trigger an async schema scan for a datasource."
+    )
     scan_parser.add_argument("--datasource-id", required=True)
     return parser.parse_args(remaining)
 
@@ -90,20 +119,31 @@ def build_url(base_url: str, path: str, query: dict[str, str] | None = None) -> 
 
 
 def fetch_datasource_info(base_url: str, api_key: str, datasource_id: str) -> Any:
-    return request_json(build_url(base_url, f"/datasources/{datasource_id}/info"), api_key)
+    return request_json(
+        build_url(base_url, f"/datasources/{datasource_id}/info"), api_key
+    )
 
 
-def fetch_list_tables(base_url: str, api_key: str, datasource_id: str, schema_name: str | None) -> Any:
+def fetch_list_tables(
+    base_url: str, api_key: str, datasource_id: str, schema_name: str | None
+) -> Any:
     query = {"schemaName": schema_name} if schema_name else None
-    return request_json(build_url(base_url, f"/datasources/{datasource_id}/list-tables", query), api_key)
+    return request_json(
+        build_url(base_url, f"/datasources/{datasource_id}/list-tables", query), api_key
+    )
 
 
-def fetch_describe_table(base_url: str, api_key: str, datasource_id: str, schema_name: str, table_name: str) -> Any:
+def fetch_describe_table(
+    base_url: str, api_key: str, datasource_id: str, schema_name: str, table_name: str
+) -> Any:
     query = {
         "schemaName": schema_name,
         "tableName": table_name,
     }
-    return request_json(build_url(base_url, f"/datasources/{datasource_id}/describe-table", query), api_key)
+    return request_json(
+        build_url(base_url, f"/datasources/{datasource_id}/describe-table", query),
+        api_key,
+    )
 
 
 def fetch_scan_datasource(base_url: str, api_key: str, datasource_id: str) -> Any:
@@ -114,7 +154,13 @@ def fetch_scan_datasource(base_url: str, api_key: str, datasource_id: str) -> An
     )
 
 
-def fetch_create_table(base_url: str, api_key: str, datasource_id: str, table_name: str, columns: list[dict[str, str]]) -> Any:
+def fetch_create_table(
+    base_url: str,
+    api_key: str,
+    datasource_id: str,
+    table_name: str,
+    columns: list[dict[str, str]],
+) -> Any:
     payload = {
         "tableName": table_name,
         "columns": columns,
@@ -127,7 +173,14 @@ def fetch_create_table(base_url: str, api_key: str, datasource_id: str, table_na
     )
 
 
-def fetch_insert_rows(base_url: str, api_key: str, datasource_id: str, table_name: str, columns: list[str], rows: list[list[Any]]) -> Any:
+def fetch_insert_rows(
+    base_url: str,
+    api_key: str,
+    datasource_id: str,
+    table_name: str,
+    columns: list[str],
+    rows: list[list[Any]],
+) -> Any:
     payload = {
         "tableName": table_name,
         "columns": columns,
@@ -141,7 +194,9 @@ def fetch_insert_rows(base_url: str, api_key: str, datasource_id: str, table_nam
     )
 
 
-def request_json(url: str, api_key: str, method: str = "GET", payload: dict[str, Any] | None = None) -> Any:
+def request_json(
+    url: str, api_key: str, method: str = "GET", payload: dict[str, Any] | None = None
+) -> Any:
     data = None
     headers = {
         "X-Datadata-Api-key": api_key,
@@ -279,7 +334,9 @@ def create_execution(
     return execution_id, response
 
 
-def fetch_result_artifact(base_url: str, api_key: str, execution_id: str, fmt: str, timeout: int | None = None) -> tuple[bytes, str]:
+def fetch_result_artifact(
+    base_url: str, api_key: str, execution_id: str, fmt: str, timeout: int | None = None
+) -> tuple[bytes, str]:
     query: dict[str, str] = {"format": fmt}
     if timeout is not None:
         query["timeout"] = str(timeout)
@@ -358,7 +415,9 @@ def run_get_datasource_info(args: argparse.Namespace) -> int:
 
 
 def run_list_tables(args: argparse.Namespace) -> int:
-    response = fetch_list_tables(args.base_url, args.api_key, args.datasource_id, args.schema_name)
+    response = fetch_list_tables(
+        args.base_url, args.api_key, args.datasource_id, args.schema_name
+    )
     print(json.dumps(response, ensure_ascii=False, indent=2))
     return 0
 
@@ -377,7 +436,9 @@ def run_describe_table(args: argparse.Namespace) -> int:
 
 def run_get_execution_result(args: argparse.Namespace) -> int:
     try:
-        result = fetch_result_artifact(args.base_url, args.api_key, args.execution_id, args.format, args.timeout)
+        result = fetch_result_artifact(
+            args.base_url, args.api_key, args.execution_id, args.format, args.timeout
+        )
     except Exception as exc:  # noqa: BLE001
         print(
             json.dumps(
@@ -392,9 +453,13 @@ def run_get_execution_result(args: argparse.Namespace) -> int:
         return 1
 
     content, content_type = result
-    output_path = args.output_path or default_output_path(args.execution_id, args.format, content_type)
+    output_path = args.output_path or default_output_path(
+        args.execution_id, args.format, content_type
+    )
     artifact = write_artifact(output_path, content)
-    artifact["contentType"] = content_type or ("text/csv" if args.format == "csv" else "application/x-ndjson")
+    artifact["contentType"] = content_type or (
+        "text/csv" if args.format == "csv" else "application/x-ndjson"
+    )
     artifact["format"] = args.format
     row_count = estimate_rows(content, artifact["contentType"])
     if row_count is not None:
@@ -421,8 +486,14 @@ def run_create_table(args: argparse.Namespace) -> int:
     if not isinstance(columns, list):
         print("--columns must be a JSON array", file=sys.stderr)
         return 2
-    fetch_create_table(args.base_url, args.api_key, args.datasource_id, args.table_name, columns)
-    print(json.dumps({"status": "ok", "tableName": args.table_name}, ensure_ascii=False, indent=2))
+    fetch_create_table(
+        args.base_url, args.api_key, args.datasource_id, args.table_name, columns
+    )
+    print(
+        json.dumps(
+            {"status": "ok", "tableName": args.table_name}, ensure_ascii=False, indent=2
+        )
+    )
     return 0
 
 
@@ -440,15 +511,26 @@ def run_insert_rows(args: argparse.Namespace) -> int:
         print(f"Invalid JSON: {exc}", file=sys.stderr)
         return 2
     if not isinstance(columns, list) or not isinstance(rows, list):
-        print("--columns must be a JSON array and --rows must be a JSON 2D array", file=sys.stderr)
+        print(
+            "--columns must be a JSON array and --rows must be a JSON 2D array",
+            file=sys.stderr,
+        )
         return 2
-    response = fetch_insert_rows(args.base_url, args.api_key, args.datasource_id, args.table_name, columns, rows)
-    print(json.dumps({
-        "status": "ok",
-        "tableName": args.table_name,
-        "inserted": len(rows),
-        "response": response,
-    }, ensure_ascii=False, indent=2))
+    response = fetch_insert_rows(
+        args.base_url, args.api_key, args.datasource_id, args.table_name, columns, rows
+    )
+    print(
+        json.dumps(
+            {
+                "status": "ok",
+                "tableName": args.table_name,
+                "inserted": len(rows),
+                "response": response,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     return 0
 
 
