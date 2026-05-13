@@ -5,7 +5,11 @@
     }
   ],
   "editor.formatOnSave": true,
+  "[markdown]": {
+    "editor.wordWrap": "off"
+  },
   "cSpell.words": [
+    "ducklake",
     "stdlib"
   ]
 }

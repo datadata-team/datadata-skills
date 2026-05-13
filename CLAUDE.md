@@ -1,57 +1,48 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code agents working in this repository.
 
 ## Repository purpose
 
-Claude Code **skills** repository for the Datadata analytics platform. Each skill lives in its own directory with a `SKILL.md`, optional `agents/` config, `references/` docs, and `scripts/`.
+Claude Code **skills** repository for the Datadata analytics platform. One primary skill: `datadata-api/`. Organized around two core functions:
 
-## Deploying changes
+- **查询数据** — SQL queries (`execute-adhoc`), metadata inspection, result download
+- **录入数据** — Data-space table management (`create-table`, `insert-rows`, `drop-data-space-table`)
+
+Skill details: [datadata-api/SKILL.md](datadata-api/SKILL.md).
+
+## Deploy
 
 ```bash
-./scripts/sync.sh
+./scripts/sync.sh claude   # deploy to ~/.claude/skills/
+./scripts/sync.sh codex    # deploy to ~/.codex/skills/ (default)
 ```
 
-Rsyncs `datadata-api/` into `~/.claude/skills/`. Run after editing scripts, SKILL.md, references, or agent configs.
+## Skill structure
 
-## VSCode / Copilot conventions
+```txt
+datadata-api/
+├── SKILL.md              # Frontmatter + full skill instructions
+├── agents/openai.yaml    # Agent interface (OpenAI-compatible)
+├── references/
+│   ├── api.md            # REST API endpoints + urllib examples
+│   ├── cli.md            # CLI commands, params, workflows
+│   ├── query-guide.md    # SQL conventions, safety, result handling
+│   └── data-spaces.md    # Data-space table management
+└── scripts/
+    └── datadata_query.py # CLI entrypoint (stdlib-only Python)
+```
 
-- Commit messages use **AngularJS style** in **Chinese** — e.g. `feat(auth): 新增登录功能` with bullet details after a blank line
-- `.vscode/settings.json` also configures `editor.formatOnSave: true` and cSpell overrides
+## CLI internals (`datadata_query.py`)
 
-## Permissions (`.claude/settings.local.json`)
+- **Two-pass parsing**: `parse_known_args()` first pass extracts global flags (`--base-url`, `--api-key`), then subcommand parser runs. Global flags **must appear before** the subcommand.
+- **Dispatch**: flat `if-elif` chain in `main()`. New subcommands need a subparser in `parse_args()` + a `run_*` branch.
+- **HTTP**: `request_json()` / `request_text()` / `request_bytes()` use `urllib.request` with `X-Datadata-Api-key` header.
+- **Exit codes**: 0 = success, 1 = fetch error, 2 = invalid args.
 
-Pre-configured to allow `python3:*`, `git *`, and `./scripts/sync.sh *` without prompting.
+## Conventions
 
-## Skill structure convention
-
-Each skill directory follows a consistent layout:
-
-| Path | Purpose |
-| ---- | ------- |
-| `SKILL.md` | Frontmatter (name, description, triggers) + full skill instructions |
-| `scripts/` | Executable code (stdlib-only Python, zero external deps) |
-| `references/` | Reference docs like CLI arg tables |
-| `agents/` | Agent interface definitions (e.g. `openai.yaml` for OpenAI-compatible runners) |
-
-## Skill: datadata-api
-
-Run SQL against Datadata via `datadata-api/scripts/datadata_query.py` (stdlib-only Python, zero dependencies). Auth via `DATADATA_API_KEY` env var or `--api-key` flag. Base URL defaults to `https://www.datadata.com/api/v1`, override via `DATADATA_BASE_URL` env var or `--base-url`.
-
-### CLI dispatch flow (`datadata_query.py`)
-
-- `parse_args()` uses a **two-pass** approach: first parses global flags (`--base-url`, `--api-key`) from anywhere in argv via `parse_known_args()`, then re-parses with the full subcommand parser. This lets global flags appear before *or after* the subcommand without breaking.
-- `main()` dispatches subcommands via a flat if-elif chain on `args.command`. To add a subcommand, register a subparser in `parse_args()` and add a corresponding `run_*` branch in `main()`.
-- `request_json()` / `request_text()` / `request_bytes()` — three HTTP helpers using `urllib.request` with `X-Datadata-Api-key` header. `request_json` auto-detects NDJSON vs JSON responses.
-- `create_execution()` POSTs to `/queries/execute-adhoc`, then recursively searches the response for an execution ID via `find_execution_id()`
-- `fetch_result_artifact()` GETs `/executions/{id}/result`; saves to temp dir as `datadata-{id}.ndjson` or `.csv`
-- `parse_datasource_bindings()` splits `ID:ALIAS` strings into `[{datasourceId, attachAlias}]`
-- Exit codes: 0 = success, 1 = result fetch error, 2 = missing/invalid args
-
-### Agent config
-
-`datadata-api/agents/openai.yaml` defines the agent interface (display name, description, default prompt) for OpenAI-compatible agent runners.
-
-### Key conventions
-
-Detailed rules live in `datadata-api/SKILL.md` (parameter scoping, query engine selection, datasource binding syntax, result handling, safety rules). CLI argument reference in `datadata-api/references/cli.md`. Do not duplicate those rules here — the skill system loads SKILL.md directly.
+- Commit messages: **AngularJS style in Chinese** — `feat(auth): 新增登录功能`
+- Python: stdlib-only, no external deps. Generated scripts should use `urllib.request` directly, not CLI subprocess.
+- Docs: Pure Chinese. Markdown files don't word-wrap (`.vscode/settings.json`).
+- Permissions: `.claude/settings.local.json` allows `python3:*`, `git *`, `./scripts/sync.sh *`.

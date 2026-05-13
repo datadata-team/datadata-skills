@@ -1,224 +1,125 @@
 ---
 name: datadata-api
-description: "Query Datadata via CLI — run adhoc SQL, inspect datasource metadata, list and describe tables, and download results as NDJSON/CSV. Use this skill whenever the user mentions Datadata, wants to query data, explore datasources or table schemas, or fetch query results. Triggers on: Datadata, data exploration, SQL queries against datasources, table inspection, execution results."
+description: "通过 CLI 查询 Datadata — 运行临时 SQL、检查数据源元数据、列表和描述表、下载 NDJSON/CSV 格式结果。当用户提到 Datadata、想查询数据、探索数据源或表 schema、获取查询结果时使用此 skill。触发：Datadata、数据探索、SQL查询、表检查、执行结果。"
 ---
 
-# Datadata API
+## 功能概览
 
-Query Datadata through `scripts/datadata_query.py`. See [references/cli.md](./references/cli.md) for CLI argument reference and [references/api.md](./references/api.md) for the full REST API reference (including direct `urllib.request` examples for generated scripts).
+本 skill 围绕两大核心功能：
 
-## Concepts
+### 查询数据
 
-- **Datasource** — A data source that queries target. Different datasource types (ducklake, MySQL, ClickHouse, CSV, etc.) have different table naming conventions.
-- **Data space** — A special datasource of type `ducklake` that supports user-created tables and data insertion. The data-space name is the datasource's `name`. Querying data within a data space uses the exact same flow as any other datasource: bind the datasource in a query, then execute it.
-- **Query** (`execute-adhoc`) — **Read-only** abstraction that bundles a SQL script (SELECT only), datasource bindings, and a query engine type. A query is not executed until you create an execution from it.
-- **Execution** (`get-execution-result`) — An abstraction over running a query. Each call to `execute-adhoc` creates an execution and returns an `executionId`. Use that ID to fetch the result asynchronously.
+- **元数据查询** — 检查数据源信息、列出表、描述列结构
+- **执行 SQL 查询** — 通过 `execute-adhoc` 执行 SELECT 查询，支持 DuckDB 和 ClickHouse 引擎，DuckDB 引擎可跨数据源关联
+- **结果下载** — 以 NDJSON 或 CSV 格式下载查询结果
+- **Schema 扫描** — 触发异步扫描，刷新数据源的表元数据
 
-## Subcommands
+### 录入数据
 
-| Subcommand             | Purpose                                       |
-| ---------------------- | --------------------------------------------- |
-| `get-datasource-info`  | Inspect datasource metadata                   |
-| `list-tables`          | List tables in a schema                       |
-| `describe-table`       | Describe columns of a table                   |
-| `create-table`         | Create a table in a data space                |
-| `insert-rows`          | **批量插入**数据到 data space 表 — 唯一的数据写入接口 |
-| `scan-datasource`      | Trigger an async schema scan for a datasource |
-| `execute-adhoc`        | **Read-only query execution** — SELECT only. Never use for INSERT/UPDATE/DELETE |
-| `get-execution-result` | Download execution result artifact            |
+- **Data Spaces 表管理** — 在 ducklake 数据空间中创建表、批量插入数据、删除表
+- 录入的数据同样可通过 `execute-adhoc` 查询
 
-## Workflow
+### 生成脚本
 
-```bash
-# Export credentials (preferred, avoids arg-ordering issues)
-export DATADATA_API_KEY="..."
-export DATADATA_BASE_URL="http://127.0.0.1:9870/api/v1/"  # only for local dev
+- 提供 `urllib.request` 直接调用示例，零额外依赖（详见 [references/api.md](./references/api.md)）
 
-# Optional metadata discovery — only describe tables you actually need
-python3 scripts/datadata_query.py get-datasource-info --datasource-id "<id>"
-python3 scripts/datadata_query.py list-tables --datasource-id "<id>" --schema-name "main"
-python3 scripts/datadata_query.py describe-table --datasource-id "<id>" --schema-name "main" --table-name "customers"
+## 使用场景
 
-# Create execution
-python3 scripts/datadata_query.py execute-adhoc \
-  --script-type sql \
-  --query-engine duckdb \
-  --datasource "<id>:alias" \
-  --script "select * from alias limit 20"
+当用户提出以下需求时，应激活本 skill：
 
-# Download result
-python3 scripts/datadata_query.py get-execution-result \
-  --execution-id "<execution-id>" \
-  --format ndjson \
-  --timeout 30
-```
+| 场景                        | 示例                                                          |
+| --------------------------- | ------------------------------------------------------------- |
+| 查询 Datadata 中的数据      | "帮我查一下销售数据"、"统计上个月的用户增长"                  |
+| 探索数据源结构              | "看看这个 datasource 有哪些表"、"描述一下 customers 表的字段" |
+| 跨数据源关联分析            | "把 MySQL 的订单表和 CSV 的用户信息 join 一下"                |
+| 数据写入与持久化            | "把爬虫结果存到 data space 里"、"批量插入这些数据"            |
+| 获取查询结果                | "下载上次查询的 NDJSON 结果"                                  |
+| 以编程方式调用 Datadata API | "帮我写一个 Python 脚本直接调 Datadata API"                   |
 
-**CRITICAL: `--base-url` and `--api-key` are GLOBAL flags and must appear BEFORE the subcommand.** Placing them after the subcommand (e.g. `get-datasource-info --datasource-id "..." --base-url "..."`) will fail with "unrecognized arguments".
+## 概念
 
-Use `--output-path` on `get-execution-result` to control save location. Defaults to system temp.
+- **Datasource** — 查询目标的数据源。不同类型的 datasource（ducklake、MySQL、ClickHouse、CSV 等）有不同的表命名约定。
+- **Data space** — 录入数据的目标。`ducklake` 类型 datasource 独有的能力，支持创建表、批量插入和删除表。data-space 名称为 datasource 的 `name`（通过 `get-datasource-info` 获取）。录入后可通过 `execute-adhoc` 像查询普通数据源一样查询其中的数据。
+- **Query** (`execute-adhoc`) — **只读**抽象，包含 SQL 脚本（SELECT 仅），datasource 绑定和查询引擎类型。查询不会立即执行，直到创建一个 execution。
+- **Execution** (`get-execution-result`) — 运行查询的抽象。每次调用 `execute-adhoc` 创建一个 execution 并返回 `executionId`。使用该 ID 异步获取结果。
 
-## Data Spaces (Table Management)
+## 环境变量
 
-Create tables and insert data — useful when AI generates crawler/scraper scripts that need to store results in Datadata. Tables created this way are queryable like any other datasource via `execute-adhoc`.
+| 变量名              | 必填 | 默认值                            | 对应 CLI 标志 | 描述                                                       |
+| ------------------- | ---- | --------------------------------- | ------------- | ---------------------------------------------------------- |
+| `DATADATA_API_KEY`  | 是   | —                                 | `--api-key`   | API 认证密钥，始终以 `ak_` 开头                            |
+| `DATADATA_BASE_URL` | 否   | `https://www.datadata.com/api/v1` | `--base-url`  | API 基础地址，仅本地开发或测试时需覆盖（不要询问用户此值） |
 
-> **Note:** Only datasources of type `ducklake` support data-spaces operations. Always check the datasource type via `get-datasource-info` before attempting to create a table or insert rows. When querying ducklake tables, use the `ducklake.{datasourceName}.{tableName}` qualified name syntax — see "Table naming" below for details.
+> **提示：** 推荐使用环境变量避免每次输入。CLI 全局标志（`--base-url`、`--api-key`）必须在子命令**之前**出现，否则报"unrecognized arguments"。
 
-**For generated scripts, prefer direct API calls over the CLI** — direct calls use `urllib.request` (stdlib, no dependencies), avoid subprocess overhead, and give cleaner error handling. See [references/api.md](./references/api.md#data-spaces-apis) for request formats and Python examples.
+### 获取 API Key
 
-```bash
-# Create table
-python3 scripts/datadata_query.py create-table \
-  --datasource-id "<id>" \
-  --table-name "products" \
-  --columns '[{"columnName": "id", "columnType": "INTEGER"}, {"columnName": "name", "columnType": "VARCHAR"}]'
-
-# Insert rows (transactional — all-or-nothing)
-python3 scripts/datadata_query.py insert-rows \
-  --datasource-id "<id>" \
-  --table-name "products" \
-  --columns '["id", "name"]' \
-  --rows '[[1, "Widget"], [2, "Gadget"]]'
-
-# Query with ducklake qualified name (get the datasource name from get-datasource-info)
-python3 scripts/datadata_query.py execute-adhoc \
-  --script-type sql --query-engine duckdb \
-  --datasource "<id>:<datasourceName>" \
-  --script "select * from ducklake.<datasourceName>.products limit 10"
-```
-
-### Auth note
-
-`create-table` and `insert-rows` require the API key to have the `data-spaces:write` permission (in addition to the existing permissions). `execute-adhoc` queries against these tables work with `queries:execute-adhoc` as usual.
-
-## Scanning Datasource Schema
-
-Trigger an asynchronous schema scan to refresh table metadata for a datasource:
-
-```bash
-python3 scripts/datadata_query.py scan-datasource --datasource-id "<id>"
-```
-
-Prints a task object like `{"taskId": "...", "taskType": "scan", "state": "active"}`. The scan runs in the background — this command returns immediately.
-
-> **For data-spaces (ducklake):** If you need immediate, real-time table structure, use the data-spaces `describe-table` endpoint instead (CLI: `describe-table`, or direct POST to `/data-spaces/{id}/describe-table`). The scan endpoint is designed for non-ducklake datasources that need background schema discovery; ducklake datasources can always describe tables synchronously.
-
-### Fetching results
-
-`execute-adhoc` returns immediately with an `executionId` — the query runs asynchronously. Pass `--timeout <seconds>` to `get-execution-result` to let the backend wait for completion. If the query isn't done within the timeout, the API returns a timeout error; use a longer timeout or return the `executionId` to the user.
-
-Search saved results locally:
-
-```bash
-rg 'Acme|United States' /tmp/datadata-<execution-id>.ndjson
-```
-
-## Rules
-
-### Parameter scoping
-
-- `--datasource`, `--script`, `--script-type`, `--query-engine` → `execute-adhoc`
-- `--execution-id`, `--format`, `--output-path` → `get-execution-result`
-- `--datasource-id` → `get-datasource-info`, `list-tables`, `describe-table` (ID only, no `:alias` binding)
-- `--datasource-id`, `--table-name`, `--columns` → `create-table`
-- `--datasource-id`, `--table-name`, `--columns`, `--rows` → `insert-rows`
-- `--datasource-id` → `scan-datasource`
-- Do not mix parameters between subcommands
-- API key always starts with `ak_`; datasource IDs look like random strings (e.g. `CXNGJifvqE48kdzKVC9o5`). Never use a non-`ak_` string as `--api-key`
-
-### Query engine
-
-- Default `duckdb`; switch to `clickhouse` only for ClickHouse datasources
-- Use DuckDB SQL for `duckdb` queries; ClickHouse SQL for `clickhouse` queries
-- ClickHouse datasources cannot cross-source join
-
-### Datasource binding
-
-- Format: `--datasource "DATASOURCE_ID:ATTACH_ALIAS"`, repeatable
-- SQL references tables using the alias, not the datasource ID
-- **Exception**: `ducklake` type datasources ignore the alias — the datasource's own `name` is always used as the schema. Use `get-datasource-info` to retrieve it.
-
-### Table naming
-
-The way you reference a table in SQL depends on the datasource **type**. Always check the datasource type (via `get-datasource-info`) before writing SQL so you use the correct naming pattern.
-
-**Ducklake datasources** (type `ducklake`): These are Datadata-managed DuckDB-based data spaces. The catalog name is fixed as `ducklake`. The datasource's own `name` (from `get-datasource-info`) is used as the schema — **custom aliases are not supported**. There is no schema nesting beyond the datasource name:
-
-```
-ducklake.{datasourceName}.{tableName}
-```
-
-Use `get-datasource-info` to find the datasource name, then use it in SQL and `--datasource "ID:NAME"` binding.
-
-**Database datasources** (MySQL, PostgreSQL, DuckDB, SQLite, ClickHouse, etc.): The alias becomes the database name. Tables live inside schemas within that database:
-
-```
-attachAlias.schemaName.tableName
-```
-
-**File datasources** (CSV, JSON, Parquet, etc.): Each attached file becomes a table in DuckDB's built-in `memory` database under the `main` schema. The alias is the table name:
-
-```
-memory.main.attachAlias
-```
-
-**Use short names whenever unambiguous:**
-
-- `memory.main.sales` → just `sales` (when no other table named `sales` exists across all attached datasources)
-- `mydb.public.users` → just `users` (when `users` is unique across all schemas)
-- Use `*` to reference all columns from a short name: `SELECT * FROM sales`
-- When joining across datasources, use fully qualified names to avoid ambiguity
-
-### Identifier quoting
-
-Always quote identifiers (table names, column names, aliases) that could conflict with SQL keywords. Use double quotes for standard SQL identifiers and backticks for MySQL-compatible syntax. When in doubt, quote all identifiers — it's harmless and prevents subtle breakage when a column name happens to be a reserved word (e.g. `"from"`, `"order"`, `"group"`, `"select"`, `"user"`, `"status"`, `"key"`).
-
-```sql
--- Good: quoted identifiers
-SELECT "id", "name", "status" FROM "sales" WHERE "order" = 'abc'
-
--- Bad: unquoted "status" and "order" may conflict with reserved words
-SELECT id, name, status FROM sales WHERE order = 'abc'
-```
-
-### Result handling
-
-- `--format ndjson` for searchable results; `csv` for exports
-- Never send full large datasets into model context — save to file, search locally, summarize
-- Report file path, format, and execution ID for reuse
-
-### Safety
-
-- `execute-adhoc` is **read-only**. Never use it for INSERT, UPDATE, DELETE, DROP, ALTER, or any data-modifying SQL
-- Only `insert-rows` API / subcommand can insert data — it supports **批量插入** (batch insert)
-- Never run destructive SQL unless explicitly requested
-- Never silently rewrite business logic in SQL
-
-### Error handling
-
-- On `401`/`403`: verify the API key format (starts with `ak_`) and that it hasn't expired
-- On **any 404**: stop immediately. The API endpoint does not exist at this base URL — do NOT retry with different subcommands or parameters. Tell the user the API is unreachable and suggest checking `DATADATA_BASE_URL`
-- On `5xx` or network timeout: retry once after 3 seconds. If it fails again, report the error with the `executionId`
-- On `--timeout` exceeded (backend returns timeout, query still running): return the `executionId` — suggest a larger `--timeout` or checking later
-
-### Inputs
-
-- API key: `--api-key` or `DATADATA_API_KEY` env var (required)
-- Base URL: defaults to `https://www.datadata.com/api/v1`; override via `DATADATA_BASE_URL` env var or `--base-url` flag (optional, for testing only; do NOT ask user for this)
-- Inspect datasource/table/column metadata before writing SQL when uncertain
-- **Describe only the tables you need**: use `list-tables` to find candidates, then `describe-table` on specific tables. Never blindly dump all columns for every table — large datasources will overflow context
-
-### API Key
-
-If `DATADATA_API_KEY` is not set, print:
+如果未设置 `DATADATA_API_KEY`，打印以下指引：
 
 ```
 1. 登录 https://www.datadata.com
 2. 头像 → Settings → 左侧 "API Keys" → 创建新 Key
-3. 权限勾选: queries:execute-adhoc, executions:get, datasources:read, datasource:scan, data-spaces:write
+3. 权限勾选: queries:execute-adhoc, executions:get, datasources:read, datasources:scan, data-spaces:write
 4. 然后 export DATADATA_API_KEY="<key>" 或直接告诉我。
 ```
 
-## Resources
+### 注意事项
 
-- Script: [scripts/datadata_query.py](./scripts/datadata_query.py)
-- CLI reference: [references/cli.md](./references/cli.md)
+- API key 以 `ak_` 开头，datasource ID 为随机字符串（如 `CXNGJifvqE48kdzKVC9o5`）。不要将 datasource ID 误当作 `--api-key`。
+- `create-table` 和 `insert-rows` 要求 API key 额外拥有 `data-spaces:write` 权限。
+
+## 工作流
+
+基本的查询流程：
+
+1. 导出认证凭证（推荐）
+2. 查询数据源元信息
+3. 执行查询
+4. 获取结果
+
+详细的每步命令和参数，请参考 [references/cli.md](./references/cli.md#常见工作流)。
+
+## Data Spaces（数据空间）
+
+Data Spaces 允许在 ducklake 类型的数据源中创建表、批量插入数据、查询和删除表。完整说明见 [references/data-spaces.md](./references/data-spaces.md)。
+
+## 获取结果
+
+`execute-adhoc` 立即返回 `executionId` — 查询异步执行。向 `get-execution-result` 传递 `--timeout <seconds>` 让后端等待完成。详见 [references/cli.md#get-execution-result](./references/cli.md#get-execution-result)。
+
+## 规则
+
+### 查询
+
+`execute-adhoc` 的 SQL 编写约定、安全性约束及结果处理方式，详见 [references/query-guide.md](./references/query-guide.md)。
+
+### 错误处理
+
+- `401`/`403`：验证 API key 格式（以 `ak_` 开头）及是否过期
+- **任何 404**：立即停止。可能是资源不存在（如 datasource ID 无效、execution ID 不存在）或端点路径错误。检查资源 ID 是否正确；若多个端点均 404，可能是 `DATADATA_BASE_URL` 配置有误
+- `5xx` 或网络超时：等待 3 秒后重试一次。若仍失败，报告错误并附加 `executionId`
+- `--timeout` 超期（后端返回超时，查询仍在运行）：返回 `executionId` — 建议使用更大的 `--timeout` 或稍后检查
+
+### 输入
+
+- 认证和基础地址通过环境变量或 CLI 全局标志配置，详见上方 [环境变量](#环境变量) 章节
+- 编写 SQL 前不确定时应先检查数据源/表/列元信息
+- **仅描述需要的表**：使用 `list-tables` 查找候选项，再对特定表使用 `describe-table`。不要盲目导出所有表的全部列 — 大型数据源会溢出 context
+
+## References
+
+本 skill 由以下文件组成，按用途分类：
+
+| 类型        | 文件                        | 说明                            |
+| ----------- | --------------------------- | ------------------------------- |
+| 入口脚本    | [scripts/datadata_query.py] | CLI 主入口，stdlib-only Python  |
+| CLI 参考    | [references/cli.md]         | 子命令、参数与工作流示例        |
+| API 参考    | [references/api.md]         | REST API 端点与 urllib 调用示例 |
+| 查询指南    | [references/query-guide.md] | 查询引擎、表命名、标识符引用等  |
+| Data Spaces | [references/data-spaces.md] | 数据空间表管理完整说明          |
+
+[scripts/datadata_query.py]: ./scripts/datadata_query.py
+[references/cli.md]: ./references/cli.md
+[references/api.md]: ./references/api.md
+[references/query-guide.md]: ./references/query-guide.md
+[references/data-spaces.md]: ./references/data-spaces.md

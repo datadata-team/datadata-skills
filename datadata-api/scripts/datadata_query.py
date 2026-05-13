@@ -103,6 +103,20 @@ def parse_args() -> argparse.Namespace:
         help="JSON 2D array of row data: [[col1, col2], [col1, col2], ...]]",
     )
 
+    describe_data_space_table_parser = subparsers.add_parser(
+        "describe-data-space-table",
+        help="Describe a table in a data space.",
+    )
+    describe_data_space_table_parser.add_argument("--datasource-id", required=True)
+    describe_data_space_table_parser.add_argument("--table-name", required=True)
+
+    drop_data_space_table_parser = subparsers.add_parser(
+        "drop-data-space-table",
+        help="Drop a table from a data space.",
+    )
+    drop_data_space_table_parser.add_argument("--datasource-id", required=True)
+    drop_data_space_table_parser.add_argument("--table-name", required=True)
+
     scan_parser = subparsers.add_parser(
         "scan-datasource", help="Trigger an async schema scan for a datasource."
     )
@@ -188,6 +202,36 @@ def fetch_insert_rows(
     }
     return request_json(
         build_url(base_url, f"/data-spaces/{datasource_id}/insert-rows"),
+        api_key,
+        method="POST",
+        payload=payload,
+    )
+
+
+def fetch_data_space_describe_table(
+    base_url: str,
+    api_key: str,
+    datasource_id: str,
+    table_name: str,
+) -> Any:
+    payload = {"tableName": table_name}
+    return request_json(
+        build_url(base_url, f"/data-spaces/{datasource_id}/describe-table"),
+        api_key,
+        method="POST",
+        payload=payload,
+    )
+
+
+def fetch_data_space_drop_table(
+    base_url: str,
+    api_key: str,
+    datasource_id: str,
+    table_name: str,
+) -> Any:
+    payload = {"tableName": table_name}
+    return request_json(
+        build_url(base_url, f"/data-spaces/{datasource_id}/drop-table"),
         api_key,
         method="POST",
         payload=payload,
@@ -497,6 +541,32 @@ def run_create_table(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_describe_data_space_table(args: argparse.Namespace) -> int:
+    response = fetch_data_space_describe_table(
+        args.base_url, args.api_key, args.datasource_id, args.table_name
+    )
+    print(json.dumps(response, ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_drop_data_space_table(args: argparse.Namespace) -> int:
+    response = fetch_data_space_drop_table(
+        args.base_url, args.api_key, args.datasource_id, args.table_name
+    )
+    print(
+        json.dumps(
+            {
+                "status": "ok",
+                "tableName": args.table_name,
+                "response": response,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
+
+
 def run_scan_datasource(args: argparse.Namespace) -> int:
     response = fetch_scan_datasource(args.base_url, args.api_key, args.datasource_id)
     print(json.dumps(response, ensure_ascii=False, indent=2))
@@ -551,6 +621,10 @@ def main() -> int:
         return run_get_execution_result(args)
     if args.command == "create-table":
         return run_create_table(args)
+    if args.command == "describe-data-space-table":
+        return run_describe_data_space_table(args)
+    if args.command == "drop-data-space-table":
+        return run_drop_data_space_table(args)
     if args.command == "insert-rows":
         return run_insert_rows(args)
     if args.command == "scan-datasource":
