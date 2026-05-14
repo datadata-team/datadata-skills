@@ -48,6 +48,8 @@ def _request(url, method="GET", payload=None):
 | Data Spaces | POST | `/data-spaces/{id}/describe-table` | `data-spaces:write`     | `describe-data-space-table` |
 | Data Spaces | POST | `/data-spaces/{id}/drop-table`     | `data-spaces:write`     | `drop-data-space-table`     |
 | Data Spaces | POST | `/data-spaces/{id}/insert-rows`    | `data-spaces:write`     | `insert-rows`               |
+| Device Flow | POST | `/api-keys/device-flow/code`       | 无                      | 自动（缺少 API Key 时触发） |
+| Device Flow | POST | `/api-keys/device-flow/token`      | 无                      | 自动（后台轮询）            |
 
 ---
 
@@ -388,6 +390,89 @@ _request(f"{BASE_URL}/data-spaces/123/insert-rows", method="POST", payload=paylo
 | 200    | 已插入            |
 | 400    | 表未找到          |
 | 404    | data space 未找到 |
+
+---
+
+## Device Flow API（设备授权）
+
+类似 OAuth 2.0 Device Authorization Grant（RFC 8628），用于 CLI/Agent 等输入受限设备自动签发 API Key。
+
+### 端点总览
+
+| 方法   | 路径                              | 认证     | 说明                                        |
+| ------ | --------------------------------- | -------- | ------------------------------------------- |
+| `POST` | `/api-keys/device-flow/code`      | 无       | 发起授权流程，获取 user code 和 device code |
+| `GET`  | `/api-keys/device-flow/authorize` | 需要登录 | 查询授权详情（前端展示用）                  |
+| `POST` | `/api-keys/device-flow/authorize` | 需要登录 | 用户确认授权                                |
+| `POST` | `/api-keys/device-flow/token`     | 无       | 设备端轮询换取 API Key                      |
+
+### 发起授权
+
+`POST /api-keys/device-flow/code`
+
+请求体：
+
+| 字段          | 类型     | 必填 | 说明                                 |
+| ------------- | -------- | ---- | ------------------------------------ |
+| `name`        | string   | 是   | API Key 名称                         |
+| `permissions` | string[] | 是   | 权限列表，至少 1 个                  |
+| `description` | string?  | 否   | API Key 描述                         |
+| `expiresAt`   | string?  | 否   | 过期时间（ISO 8601），为空表示不过期 |
+
+直接调用：
+
+```python
+payload = {
+    "name": "my-agent-skill",
+    "permissions": ["datasources:read", "queries:execute-adhoc", "executions:get"],
+    "description": "Auto-generated API key for Datadata CLI",
+}
+data = _request(f"{BASE_URL}/api-keys/device-flow/code", method="POST", payload=payload)
+print(f"请在浏览器中打开: {data['verificationUriComplete']}")
+# 保存 deviceCode 用于后续轮询
+device_code = data["deviceCode"]
+```
+
+### 轮询换取 API Key
+
+`POST /api-keys/device-flow/token`
+
+请求体：
+
+| 字段         | 类型   | 必填 | 说明                     |
+| ------------ | ------ | ---- | ------------------------ |
+| `deviceCode` | string | 是   | 上一步返回的 device code |
+
+直接调用（轮询直到成功或过期）：
+
+```python
+import time
+
+deadline = time.time() + data["expiresIn"]
+interval = data["interval"]
+
+while time.time() < deadline:
+    try:
+        result = _request(f"{BASE_URL}/api-keys/device-flow/token", method="POST",
+                          payload={"deviceCode": device_code})
+        api_key = result["key"]
+        print(f"获取到 API Key: {api_key}")
+        break
+    except urllib.error.HTTPError as exc:
+        body = json.loads(exc.read())
+        if body.get("code") == "authorization_pending":
+            time.sleep(interval)  # 用户尚未授权，继续等待
+            continue
+        raise
+```
+
+| 状态码 | code                    | 说明                     |
+| ------ | ----------------------- | ------------------------ |
+| 200    | —                       | 授权成功，返回 API Key   |
+| 400    | `authorization_pending` | 用户尚未确认，应继续轮询 |
+| 400    | `invalid_device_code`   | deviceCode 过期或不存在  |
+
+> **注意：** `/token` 为一次性消费接口 — 调用成功后缓存即被删除，API Key 仅返回一次。
 
 ---
 

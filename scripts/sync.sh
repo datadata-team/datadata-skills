@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TARGET="${1:-codex}"
+TARGET="${1:-agents}"
 
 case "$TARGET" in
+  agents)
+    DEST=~/.agents/skills/
+    ;;
   claude)
     DEST=~/.claude/skills/
     ;;

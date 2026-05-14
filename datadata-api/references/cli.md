@@ -9,12 +9,52 @@ python3 scripts/datadata_query.py [--base-url URL] [--api-key KEY] <subcommand> 
 全局选项（`--base-url`、`--api-key`）必须在子命令**之前**出现。
 推荐使用环境变量 `DATADATA_BASE_URL` 和 `DATADATA_API_KEY` 避免重复输入。
 
+## 认证
+
+### API Key 优先级
+
+CLI 按以下顺序查找 API Key（找到即停止）：
+
+1. `--api-key` CLI 标志（最高优先级）
+2. `DATADATA_API_KEY` 环境变量
+3. `~/.config/datadata/datadata-api-skills/config.json` 配置文件
+4. 设备授权流程（自动签发 + 持久化）
+
+> Windows: `%APPDATA%\datadata\datadata-api-skills\config.json`
+
+### 设备授权（推荐）
+
+如果以上来源均未提供 API Key，CLI 将自动发起**设备授权流程**：
+
+1. CLI 调用 `/api/v1/api-keys/device-flow/code`，获取授权链接
+2. 终端打印 `verificationUriComplete` —— Agent 应使用浏览器工具自动打开该链接
+3. 用户登录 Datadata 并确认授权
+4. CLI 后台轮询 `/api/v1/api-keys/device-flow/token`，获取 API Key 后自动继续执行原命令
+5. API Key 自动保存到 `~/.config/datadata/datadata-api-skills/config.json`（Unix 权限 0600），后续直接使用，无需重复授权
+6. API Key 默认有效期 **90 天**，过期后自动清除并重新签发
+7. 若 API 返回 401/403（Key 被撤销或提前失效），CLI 也会自动清除配置并重新签发
+
+授权请求的默认权限覆盖所有 CLI 子命令所需权限。签发的 API Key 默认有效期 **90 天**，过期后删除 `~/.datadata/api-key` 即可重新触发设备授权。
+
+### 手动设置 API Key（备选）
+
+```bash
+export DATADATA_API_KEY="ak_..."
+export DATADATA_BASE_URL="https://www.datadata.com/api/v1"  # 生产环境，本地开发改为 http://127.0.0.1:9870/api/v1
+```
+
+API Key 可在 Datadata 网页端手动创建：登录 → 头像 → Settings → API Keys → 创建新 Key。
+
 ## 常见工作流
 
 ### 基础查询流程
 
 ```bash
-# 1. 设置认证（推荐方式）
+# 方式一：设备授权（推荐，无需手动创建 API Key）
+# 直接运行命令，CLI 会自动发起设备授权流程
+python3 scripts/datadata_query.py get-datasource-info --datasource-id "<id>"
+
+# 方式二：手动设置 API Key
 export DATADATA_API_KEY="ak_..."
 export DATADATA_BASE_URL="https://www.datadata.com/api/v1"  # 生产环境，本地开发改为 http://127.0.0.1:9870/api/v1
 
@@ -213,3 +253,32 @@ python3 scripts/datadata_query.py get-execution-result --execution-id "CaU6DR...
 ```
 
 打印包含 `executionId` 和 `result` 元数据（路径、字节数、行数）的 JSON 对象。
+
+### `device-flow-start`
+
+发起设备授权（非阻塞），输出 JSON 后立即退出。供 Agent 使用。
+
+```bash
+python3 scripts/datadata_query.py device-flow-start
+```
+
+输出含 `verificationUriComplete`、`deviceCode`、`nextStep` 等字段。自动保存状态到 `device-flow-pending.json`。Agent 应提取 URL 用浏览器打开。
+
+### `device-flow-complete`
+
+轮询完成设备授权，获取 API Key 并自动保存。`--device-code` 可省略，自动从状态文件恢复。
+
+| 选项            | 必填 | 默认值         | 说明                                  |
+| --------------- | ---- | -------------- | ------------------------------------- |
+| `--device-code` | 否   | 从状态文件读取 | `device-flow-start` 返回的 deviceCode |
+| `--interval`    | 否   | `3`            | 轮询间隔（秒）                        |
+
+```bash
+# 最简单用法：直接运行，自动从状态文件恢复
+python3 scripts/datadata_query.py device-flow-complete
+
+# 或显式指定
+python3 scripts/datadata_query.py device-flow-complete --device-code "a1b2c3..."
+```
+
+输出含 `key`、`permissions`、`expiresAt`、`savedTo`。成功后自动清除状态文件。

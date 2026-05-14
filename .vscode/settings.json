@@ -8,6 +8,9 @@
   "[markdown]": {
     "editor.wordWrap": "off"
   },
+  "[skill]": {
+    "editor.wordWrap": "off"
+  },
   "cSpell.words": [
     "ducklake",
     "stdlib"

@@ -47,47 +47,65 @@ description: "通过 CLI 查询 Datadata — 运行临时 SQL、检查数据源�
 
 | 变量名              | 必填 | 默认值                            | 对应 CLI 标志 | 描述                                                       |
 | ------------------- | ---- | --------------------------------- | ------------- | ---------------------------------------------------------- |
-| `DATADATA_API_KEY`  | 是   | —                                 | `--api-key`   | API 认证密钥，始终以 `ak_` 开头                            |
+| `DATADATA_API_KEY`  | 否   | —                                 | `--api-key`   | API 认证密钥，始终以 `ak_` 开头                            |
 | `DATADATA_BASE_URL` | 否   | `https://www.datadata.com/api/v1` | `--base-url`  | API 基础地址，仅本地开发或测试时需覆盖（不要询问用户此值） |
 
 > **提示：** 推荐使用环境变量避免每次输入。CLI 全局标志（`--base-url`、`--api-key`）必须在子命令**之前**出现，否则报"unrecognized arguments"。
 
+### API Key 获取优先级
+
+CLI 按以下顺序查找 API Key（找到即停止）：
+
+1. `--api-key` CLI 标志（最高优先级）
+2. `DATADATA_API_KEY` 环境变量
+3. `~/.config/datadata/datadata-api-skills/config.json` 配置文件（自动持久化）
+4. 设备授权流程（自动签发，见下方）
+
+> Windows 下配置文件路径为 `%APPDATA%\datadata\datadata-api-skills\config.json`。
+
 ### 获取 API Key
 
-如果未设置 `DATADATA_API_KEY`，打印以下指引：
+**推荐方式：设备授权（自动签发 + 持久化）**
 
+当 CLI 命令因缺少 API Key 退出（"未找到 API Key" 或 "API Key 无效" 等错误信息）时，Agent 必须在**同一轮对话中**立即执行以下流程，**不得停下来询问用户**：
+
+```bash
+# 步骤 1：发起授权（立即返回 JSON，不阻塞）
+python3 scripts/datadata_query.py device-flow-start
+
+# 步骤 2：从 JSON 提取 verificationUriComplete，立即用浏览器工具打开
+
+# 步骤 3：立即运行（不等用户回复，该命令阻塞轮询直到授权完成）
+python3 scripts/datadata_query.py device-flow-complete
+
+# 步骤 4：授权成功后立即重新运行用户原始命令
 ```
+
+`device-flow-start` 输出含 `verificationUriComplete`、`deviceCode`、`nextStep`。`device-flow-complete` 可省略 `--device-code`（自动从状态文件恢复），成功后 Key 自动保存到 `~/.config/datadata/datadata-api-skills/config.json`，有效期 90 天。
+
+> ⚠️ 关键：步骤 2 打开浏览器后立即执行步骤 3，不要等用户回复。`device-flow-complete` 的阻塞轮询就是在等用户授权。若环境不支持浏览器，则打印链接并提示用户手动打开后再执行步骤 3。
+
+**手动方式（备选）**
+
+如果设备授权失败或用户已有关键，可手动设置：
+
 1. 登录 https://www.datadata.com
 2. 头像 → Settings → 左侧 "API Keys" → 创建新 Key
 3. 权限勾选: queries:execute-adhoc, executions:get, datasources:read, datasources:scan, data-spaces:write
-4. 然后 export DATADATA_API_KEY="<key>" 或直接告诉我。
-```
-
-### 注意事项
-
-- API key 以 `ak_` 开头，datasource ID 为随机字符串（如 `CXNGJifvqE48kdzKVC9o5`）。不要将 datasource ID 误当作 `--api-key`。
-- `create-table` 和 `insert-rows` 要求 API key 额外拥有 `data-spaces:write` 权限。
+4. 然后 export DATADATA_API_KEY="<key>" 或通过 `--api-key` 传入。
 
 ## 工作流
 
-基本的查询流程：
+1. 配置认证（设备授权自动签发，或手动设置 API Key）
+2. 查询数据源元信息 → 执行查询 → 获取结果
 
-1. 导出认证凭证（推荐）
-2. 查询数据源元信息
-3. 执行查询
-4. 获取结果
-
-详细的每步命令和参数，请参考 [references/cli.md](./references/cli.md#常见工作流)。
-
-## Data Spaces（数据空间）
-
-Data Spaces 允许在 ducklake 类型的数据源中创建表、批量插入数据、查询和删除表。完整说明见 [references/data-spaces.md](./references/data-spaces.md)。
-
-## 获取结果
-
-`execute-adhoc` 立即返回 `executionId` — 查询异步执行。向 `get-execution-result` 传递 `--timeout <seconds>` 让后端等待完成。详见 [references/cli.md#get-execution-result](./references/cli.md#get-execution-result)。
+详见 [references/cli.md](./references/cli.md#常见工作流)。Data Spaces 表管理见 [references/data-spaces.md](./references/data-spaces.md)。
 
 ## 规则
+
+### 🔴 设备授权
+
+当 CLI 返回 exit code 2 且输出含"未找到 API Key"时，按 [获取 API Key](#获取-api-key) 中的四步流程操作：`device-flow-start` → 打开浏览器 → `device-flow-complete` → 重跑原命令。**全程在同一轮对话中完成，不要中断询问用户。**
 
 ### 查询
 
@@ -95,6 +113,7 @@ Data Spaces 允许在 ducklake 类型的数据源中创建表、批量插入数�
 
 ### 错误处理
 
+- **exit code 2 + "未找到 API Key"**：这不是错误，是触发设备授权的信号。立即执行 [获取 API Key](#获取-api-key) 中的四步流程，不要询问用户
 - `401`/`403`：验证 API key 格式（以 `ak_` 开头）及是否过期
 - **任何 404**：立即停止。可能是资源不存在（如 datasource ID 无效、execution ID 不存在）或端点路径错误。检查资源 ID 是否正确；若多个端点均 404，可能是 `DATADATA_BASE_URL` 配置有误
 - `5xx` 或网络超时：等待 3 秒后重试一次。若仍失败，报告错误并附加 `executionId`
@@ -102,9 +121,11 @@ Data Spaces 允许在 ducklake 类型的数据源中创建表、批量插入数�
 
 ### 输入
 
-- 认证和基础地址通过环境变量或 CLI 全局标志配置，详见上方 [环境变量](#环境变量) 章节
-- 编写 SQL 前不确定时应先检查数据源/表/列元信息
-- **仅描述需要的表**：使用 `list-tables` 查找候选项，再对特定表使用 `describe-table`。不要盲目导出所有表的全部列 — 大型数据源会溢出 context
+- API key 以 `ak_` 开头，datasource ID 为随机字符串（如 `CXNGJifvqE48kdzKVC9o5`）。不要将 datasource ID 误当作 `--api-key`
+- `create-table` 和 `insert-rows` 要求 API key 额外拥有 `data-spaces:write` 权限
+- 认证和基础地址通过环境变量或 CLI 全局标志配置，详见上方 [环境变量](#环境变量)
+- 编写 SQL 前先检查数据源/表/列元信息
+- **仅描述需要的表**：用 `list-tables` 找候选项，再对特定表用 `describe-table`。不要导出所有表的所有列
 
 ## References
 
