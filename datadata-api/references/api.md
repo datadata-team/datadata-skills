@@ -1,6 +1,6 @@
 # Datadata API 参考
 
-基础 URL：`https://www.datadata.com/api/v1`（本地开发可通过 `DATADATA_BASE_URL` 覆盖）。
+基础 URL：`https://www.datadata.com`（本地开发可通过 `DATADATA_BASE_URL` 覆盖）。
 
 认证：使用 `X-Datadata-Api-key` 头传入 API Key。
 
@@ -19,7 +19,7 @@ Python 请求模板：
 import json, urllib.request
 
 API_KEY = "..."
-BASE_URL = "https://www.datadata.com/api/v1"
+BASE_URL = "https://www.datadata.com"
 
 def _request(url, method="GET", payload=None):
     headers = {"X-Datadata-Api-key": API_KEY, "Accept": "application/json"}
@@ -36,20 +36,22 @@ def _request(url, method="GET", payload=None):
 
 ## 端点总览
 
-| 类型        | 方法 | 路径                               | 权限                    | CLI 子命令                  |
-| ----------- | ---- | ---------------------------------- | ----------------------- | --------------------------- |
-| Datasource  | GET  | `/datasources/{id}/info`           | `datasources:read`      | `get-datasource-info`       |
-| Datasource  | GET  | `/datasources/{id}/list-tables`    | `datasources:read`      | `list-tables`               |
-| Datasource  | GET  | `/datasources/{id}/describe-table` | `datasources:read`      | `describe-table`            |
-| Datasource  | POST | `/datasources/{id}/scan`           | `datasource:scan`       | `scan-datasource`           |
-| Execution   | POST | `/queries/execute-adhoc`           | `queries:execute-adhoc` | `execute-adhoc`             |
-| Execution   | GET  | `/executions/{id}/result`          | `executions:get`        | `get-execution-result`      |
-| Data Spaces | POST | `/data-spaces/{id}/create-table`   | `data-spaces:write`     | `create-table`              |
-| Data Spaces | POST | `/data-spaces/{id}/describe-table` | `data-spaces:write`     | `describe-data-space-table` |
-| Data Spaces | POST | `/data-spaces/{id}/drop-table`     | `data-spaces:write`     | `drop-data-space-table`     |
-| Data Spaces | POST | `/data-spaces/{id}/insert-rows`    | `data-spaces:write`     | `insert-rows`               |
-| Device Flow | POST | `/api-keys/device-flow/code`       | 无                      | 自动（缺少 API Key 时触发） |
-| Device Flow | POST | `/api-keys/device-flow/token`      | 无                      | 自动（后台轮询）            |
+| 类型        | 方法 | 路径                                           | 权限                    | CLI 子命令                    |
+| ----------- | ---- | ---------------------------------------------- | ----------------------- | ----------------------------- |
+| Datasource  | GET  | `/api/v1/datasources/{id}/info`                | `datasources:read`      | `get-datasource-info`         |
+| Datasource  | GET  | `/api/v1/datasources/{id}/list-tables`         | `datasources:read`      | `list-tables`                 |
+| Datasource  | GET  | `/api/v1/datasources/{id}/describe-table`      | `datasources:read`      | `describe-table`              |
+| Datasource  | POST | `/api/v1/datasources/{id}/scan`                | `datasource:scan`       | `scan-datasource`             |
+| Datasource  | GET  | `/api/v1/datasources`                          | `datasources:read`      | `search-datasource` (private) |
+| Search      | GET  | `/api/search-engine/indexes/datasource/search` | 无                      | `search-datasource` (public)  |
+| Execution   | POST | `/api/v1/queries/execute-adhoc`                | `queries:execute-adhoc` | `execute-adhoc`               |
+| Execution   | GET  | `/api/v1/executions/{id}/result`               | `executions:get`        | `get-execution-result`        |
+| Data Spaces | POST | `/api/v1/data-spaces/{id}/create-table`        | `data-spaces:write`     | `create-table`                |
+| Data Spaces | POST | `/api/v1/data-spaces/{id}/describe-table`      | `data-spaces:write`     | `describe-data-space-table`   |
+| Data Spaces | POST | `/api/v1/data-spaces/{id}/drop-table`          | `data-spaces:write`     | `drop-data-space-table`       |
+| Device Flow | POST | `/api/v1/api-keys/device-flow/code`            | 无                      | 自动（缺少 API Key 时触发）   |
+| Device Flow | POST | `/api/v1/api-keys/device-flow/token`           | 无                      | 自动（后台轮询）              |
+| Auth        | GET  | `/api/v1/auth/current`                         | 无（需有效 API Key）    | `whoami`                      |
 
 ---
 
@@ -70,7 +72,7 @@ python3 scripts/datadata_query.py get-datasource-info --datasource-id "CXNGJifvq
 直接调用：
 
 ```python
-data = _request(f"{BASE_URL}/datasources/CXNGJifvqE48kdzKVC9o5/info")
+data = _request(f"{BASE_URL}/api/v1/datasources/CXNGJifvqE48kdzKVC9o5/info")
 print(data["type"])
 ```
 
@@ -89,7 +91,7 @@ python3 scripts/datadata_query.py list-tables --datasource-id "CXNGJifvqE48kdzKV
 直接调用：
 
 ```python
-data = _request(f"{BASE_URL}/datasources/CXNGJifvqE48kdzKVC9o5/list-tables?schemaName=main")
+data = _request(f"{BASE_URL}/api/v1/datasources/CXNGJifvqE48kdzKVC9o5/list-tables?schemaName=main")
 ```
 
 ### 描述表结构
@@ -110,7 +112,7 @@ python3 scripts/datadata_query.py describe-table \
 直接调用：
 
 ```python
-data = _request(f"{BASE_URL}/datasources/CXNGJifvqE48kdzKVC9o5/describe-table?schemaName=main&tableName=customers")
+data = _request(f"{BASE_URL}/api/v1/datasources/CXNGJifvqE48kdzKVC9o5/describe-table?schemaName=main&tableName=customers")
 ```
 
 返回示例：
@@ -145,7 +147,7 @@ python3 scripts/datadata_query.py scan-datasource --datasource-id "CXNGJifvqE48k
 直接调用：
 
 ```python
-data = _request(f"{BASE_URL}/datasources/CXNGJifvqE48kdzKVC9o5/scan", method="POST")
+data = _request(f"{BASE_URL}/api/v1/datasources/CXNGJifvqE48kdzKVC9o5/scan", method="POST")
 print(data["taskId"])
 ```
 
@@ -163,6 +165,75 @@ print(data["taskId"])
 | ------ | ----------------- |
 | 200    | 已创建扫描任务    |
 | 404    | datasource 未找到 |
+
+### 搜索公开数据源（Meilisearch 引擎）
+
+`GET /api/search-engine/indexes/datasource/search?q={query}&filter={filter}`
+
+无需认证。支持通过名称、描述模糊搜索，可通过 `user.username` 过滤。
+
+查询参数：
+
+| 参数     | 必填 | 说明                                   |
+| -------- | ---- | -------------------------------------- |
+| `q`      | 是   | 搜索关键词                             |
+| `filter` | 否   | 过滤条件，如 `user.username = hungtcs` |
+| `limit`  | 否   | 返回结果数（默认 20）                  |
+| `offset` | 否   | 分页偏移                               |
+
+CLI：
+
+```bash
+# 公共搜索
+python3 scripts/datadata_query.py search-datasource --query "customers" --scope public
+
+# 按用户过滤
+python3 scripts/datadata_query.py search-datasource --query "hungtcs/customers"
+```
+
+直接调用：
+
+```python
+import urllib.parse
+
+query = urllib.parse.quote("customers")
+filter_str = urllib.parse.quote("user.username = hungtcs")
+url = f"{BASE_URL}/api/search-engine/indexes/datasource/search?q={query}&filter={filter_str}"
+data = _request(url)  # 无需 API Key
+for hit in data["hits"]:
+    print(hit["id"], hit["name"], hit["user"]["username"])
+```
+
+### 搜索当前用户的数据源
+
+`GET /api/v1/datasources?scope=owner&search={keyword}&sort=updated_at:desc&limit=10&offset=0`
+
+需要认证（`X-Datadata-Api-key`）。返回当前用户名下的所有数据源（含公开和私有），支持模糊搜索。
+
+查询参数：
+
+| 参数     | 必填 | 说明                             |
+| -------- | ---- | -------------------------------- |
+| `scope`  | 是   | 固定为 `owner`                   |
+| `search` | 否   | 模糊搜索关键词                   |
+| `sort`   | 否   | 排序方式，默认 `updated_at:desc` |
+| `limit`  | 否   | 返回结果数（默认 10）            |
+| `offset` | 否   | 分页偏移                         |
+
+CLI：
+
+```bash
+python3 scripts/datadata_query.py search-datasource --query "customers" --scope private
+```
+
+直接调用：
+
+```python
+url = f"{BASE_URL}/api/v1/datasources?scope=owner&search=customers&sort=updated_at:desc&limit=10&offset=0"
+data = _request(url, API_KEY)
+for item in data["data"]:
+    print(item["id"], item["name"], item["visibility"])
+```
 
 ---
 
@@ -200,7 +271,7 @@ payload = {
     "queryEngine": "duckdb",
     "datasources": [{"datasourceId": "CXNGJifvqE48kdzKVC9o5", "attachAlias": "orders"}],
 }
-response = _request(f"{BASE_URL}/queries/execute-adhoc", method="POST", payload=payload)
+response = _request(f"{BASE_URL}/api/v1/queries/execute-adhoc", method="POST", payload=payload)
 execution_id = response.get("id") or response.get("executionId")
 ```
 
@@ -227,7 +298,7 @@ python3 scripts/datadata_query.py get-execution-result \
 直接调用：
 
 ```python
-url = f"{BASE_URL}/executions/CaU6DR.../result?format=ndjson&timeout=30"
+url = f"{BASE_URL}/api/v1/executions/CaU6DR.../result?format=ndjson&timeout=30"
 req = urllib.request.Request(url, headers={"X-Datadata-Api-key": API_KEY})
 with urllib.request.urlopen(req) as resp:
     raw = resp.read().decode()
@@ -238,7 +309,7 @@ with urllib.request.urlopen(req) as resp:
 CSV 格式返回纯文本：
 
 ```python
-url = f"{BASE_URL}/executions/CaU6DR.../result?format=csv"
+url = f"{BASE_URL}/api/v1/executions/CaU6DR.../result?format=csv"
 ```
 
 如果查询在 `timeout` 内未完成，API 会返回超时错误。请延长 `timeout` 或保存 `executionId` 后续查询。
@@ -281,7 +352,7 @@ payload = {
         {"columnName": "name", "columnType": "VARCHAR"},
     ],
 }
-_request(f"{BASE_URL}/data-spaces/123/create-table", method="POST", payload=payload)
+_request(f"{BASE_URL}/api/v1/data-spaces/123/create-table", method="POST", payload=payload)
 ```
 
 | 状态码 | 含义              |
@@ -312,7 +383,7 @@ python3 scripts/datadata_query.py describe-data-space-table \
 
 ```python
 payload = {"tableName": "products"}
-data = _request(f"{BASE_URL}/data-spaces/123/describe-table", method="POST", payload=payload)
+data = _request(f"{BASE_URL}/api/v1/data-spaces/123/describe-table", method="POST", payload=payload)
 for col in data["columns"]:
     print(col["column_name"], col["data_type"])
 ```
@@ -339,7 +410,7 @@ python3 scripts/datadata_query.py drop-data-space-table \
 
 ```python
 payload = {"tableName": "products"}
-_request(f"{BASE_URL}/data-spaces/123/drop-table", method="POST", payload=payload)
+_request(f"{BASE_URL}/api/v1/data-spaces/123/drop-table", method="POST", payload=payload)
 ```
 
 | 状态码 | 含义              |
@@ -382,7 +453,7 @@ payload = {
         [2, "Gadget", 24.99],
     ],
 }
-_request(f"{BASE_URL}/data-spaces/123/insert-rows", method="POST", payload=payload)
+_request(f"{BASE_URL}/api/v1/data-spaces/123/insert-rows", method="POST", payload=payload)
 ```
 
 | 状态码 | 含义              |
@@ -427,7 +498,7 @@ payload = {
     "permissions": ["datasources:read", "queries:execute-adhoc", "executions:get"],
     "description": "Auto-generated API key for Datadata CLI",
 }
-data = _request(f"{BASE_URL}/api-keys/device-flow/code", method="POST", payload=payload)
+data = _request(f"{BASE_URL}/api/v1/api-keys/device-flow/code", method="POST", payload=payload)
 print(f"请在浏览器中打开: {data['verificationUriComplete']}")
 # 保存 deviceCode 用于后续轮询
 device_code = data["deviceCode"]
@@ -453,7 +524,7 @@ interval = data["interval"]
 
 while time.time() < deadline:
     try:
-        result = _request(f"{BASE_URL}/api-keys/device-flow/token", method="POST",
+        result = _request(f"{BASE_URL}/api/v1/api-keys/device-flow/token", method="POST",
                           payload={"deviceCode": device_code})
         api_key = result["key"]
         print(f"获取到 API Key: {api_key}")
@@ -473,6 +544,36 @@ while time.time() < deadline:
 | 400    | `invalid_device_code`   | deviceCode 过期或不存在  |
 
 > **注意：** `/token` 为一次性消费接口 — 调用成功后缓存即被删除，API Key 仅返回一次。
+
+---
+
+## 当前用户信息
+
+`GET /auth/current`
+
+返回当前认证用户的资料及 API Key 的元数据、权限列表。可用于验证 API Key 有效性、检查权限、获取用户信息。
+
+CLI：
+
+```bash
+python3 scripts/datadata_query.py whoami
+```
+
+直接调用：
+
+```python
+data = _request(f"{BASE_URL}/api/v1/auth/current")
+print(f"User: {data['user']['displayName']}")
+print(f"Permissions: {data['permissions']}")
+```
+
+返回结构：
+
+| 字段          | 类型     | 说明                                                      |
+| ------------- | -------- | --------------------------------------------------------- |
+| `user`        | object   | 用户资料（id、username、displayName 等）                  |
+| `apiKey`      | object   | API Key 元数据（id、name、keyPrefix、权限）               |
+| `permissions` | string[] | 当前会话的有效权限列表（衍生并精简自 apiKey.permissions） |
 
 ---
 

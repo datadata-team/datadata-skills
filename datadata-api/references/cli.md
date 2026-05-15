@@ -40,7 +40,7 @@ CLI 按以下顺序查找 API Key（找到即停止）：
 
 ```bash
 export DATADATA_API_KEY="ak_..."
-export DATADATA_BASE_URL="https://www.datadata.com/api/v1"  # 生产环境，本地开发改为 http://127.0.0.1:9870/api/v1
+export DATADATA_BASE_URL="https://www.datadata.com"  # 生产环境，本地开发改为 http://127.0.0.1:9870
 ```
 
 API Key 可在 Datadata 网页端手动创建：登录 → 头像 → Settings → API Keys → 创建新 Key。
@@ -56,7 +56,7 @@ python3 scripts/datadata_query.py get-datasource-info --datasource-id "<id>"
 
 # 方式二：手动设置 API Key
 export DATADATA_API_KEY="ak_..."
-export DATADATA_BASE_URL="https://www.datadata.com/api/v1"  # 生产环境，本地开发改为 http://127.0.0.1:9870/api/v1
+export DATADATA_BASE_URL="https://www.datadata.com"  # 生产环境，本地开发改为 http://127.0.0.1:9870
 
 # 2. 查询数据源元信息（可选）
 python3 scripts/datadata_query.py get-datasource-info --datasource-id "<id>"
@@ -109,6 +109,80 @@ python3 scripts/datadata_query.py drop-data-space-table \
   --datasource-id "<id>" \
   --table-name "products"
 ```
+
+### 搜索数据源（新）
+
+支持两种方式查找数据源：
+
+**1. 精确查找（username/datasource-name 格式）**
+
+```bash
+# 搜索指定用户的数据源（自动判断是否为当前用户，选择最优搜索路径）
+python3 scripts/datadata_query.py search-datasource --query "hungtcs/customers"
+
+# 当前用户 → 通过私有接口（scope=owner）搜索
+# 非当前用户 → 通过搜索引擎 + user.username 过滤
+```
+
+**2. 模糊搜索（同时搜索公开 + 私有）**
+
+```bash
+# 同时搜索社区公开数据源（Meilisearch，无需登录）和当前用户私有数据源
+python3 scripts/datadata_query.py search-datasource --query "customers"
+```
+
+搜索逻辑：
+
+- 公开搜索：通过 Meilisearch 搜索引擎，按名称、描述模糊匹配，**无需认证**
+- 私有搜索：通过 `GET /api/v1/datasources?scope=owner` 搜索当前用户名下所有数据源（含公开和私有），**需要认证**。如未配置 API Key 则自动跳过私有搜索
+- 两种来源结果合并，按 ID 去重，统一编号
+
+输出格式：
+
+```json
+{
+  "query": "customers",
+  "sources": ["public", "private"],
+  "resultCount": 2,
+  "results": [
+    {
+      "index": 1,
+      "id": "CXNGJifvqE48kdzKVC9o5",
+      "name": "customers",
+      "displayName": "Customers",
+      "description": "",
+      "visibility": "public",
+      "tags": [],
+      "username": "hungtcs",
+      "userDisplayName": "刘文杰",
+      "source": "public"
+    },
+    {
+      "index": 2,
+      "id": "ABcd1234...",
+      "name": "my-customers",
+      "displayName": "我的客户数据",
+      "description": "",
+      "visibility": "private",
+      "tags": [],
+      "type": "csv",
+      "username": "hungtcs",
+      "userDisplayName": "刘文杰",
+      "source": "private"
+    }
+  ]
+}
+```
+
+结果以 `index` 编号，Agent 可让用户根据序号选择对应的数据源，从结果的 `id` 字段提取数据源 ID。
+
+### 数据源 ID 的获取方式总结
+
+| 方式                         | 命令                                                | 适用场景                                 |
+| ---------------------------- | --------------------------------------------------- | ---------------------------------------- |
+| 平台复制                     | 直接从 Datadata 平台复制 `username/datasource-name` | 已知确切数据源                           |
+| `search-datasource` 精确查找 | `search-datasource --query "username/name"`         | 知道用户名和数据源名                     |
+| `search-datasource` 模糊搜索 | `search-datasource --query "关键词"`                | 记不清名字，模糊搜索（同时搜公开和私有） |
 
 ## 子命令
 
@@ -218,6 +292,39 @@ python3 scripts/datadata_query.py scan-datasource --datasource-id "CXNGJifvqE48k
 ```
 
 打印 `{"taskId": "...", "taskType": "scan", "state": "active"}` 形式的 JSON。扫描为异步执行 — 对于 ducklake 数据源上需要实时表结构查询的场景，使用 `describe-data-space-table`。
+
+### `whoami`
+
+获取当前用户信息及 API Key 权限详情。无需参数。
+
+```bash
+python3 scripts/datadata_query.py whoami
+```
+
+输出包含 `user`（用户资料）、`apiKey`（Key 元数据及权限列表）、`permissions`（当前会话的有效权限数组）。可用于验证 API Key 是否有效、检查权限范围、或获取当前登录用户信息。
+
+### `search-datasource`
+
+搜索数据源，支持两种方式：
+
+| 选项      | 必填 | 默认值 | 描述                                                     |
+| --------- | ---- | ------ | -------------------------------------------------------- |
+| `--query` | 是   | —      | 搜索关键词，支持 `username/datasource-name` 格式精确查找 |
+| `--limit` | 否   | `20`   | 每个来源返回的最大结果数                                 |
+
+```bash
+# 精确查找
+python3 scripts/datadata_query.py search-datasource --query "hungtcs/customers"
+
+# 模糊搜索（同时搜索公开 + 私有，无需 --scope）
+python3 scripts/datadata_query.py search-datasource --query "customers"
+```
+
+搜索行为：
+
+- **精确格式**（`username/name`）：自动判断是否为当前用户，选择最优搜索路径
+- **模糊搜索**：**始终同时**调用搜索引擎（公开，无需认证）和 owner 接口（私有，需要认证）；未配置 API Key 时自动跳过私有搜索
+- 输出结果按 ID 去重，带 `index` 序号供用户选择
 
 ### `execute-adhoc`
 

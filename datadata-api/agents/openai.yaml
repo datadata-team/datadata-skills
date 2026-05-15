@@ -16,6 +16,10 @@ interface:
 
     For ducklake data-spaces, use `create-table`, `insert-rows` (batch), `describe-data-space-table`, and `drop-table`. Creating/dropping tables auto-triggers schema scans.
 
+    ## Auth & health
+
+    Use `whoami` to verify API key validity, inspect permissions, or fetch current user info.
+
     ## Conventions
 
     API key starts with `ak_`. `--base-url` and `--api-key` must precede the subcommand. On 404, check resource ID first; if multiple endpoints fail, verify `DATADATA_BASE_URL`. Retry 5xx once after 3 seconds.

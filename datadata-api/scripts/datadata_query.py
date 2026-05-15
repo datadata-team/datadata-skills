@@ -20,7 +20,7 @@ def parse_args() -> argparse.Namespace:
     global_parser = argparse.ArgumentParser(add_help=False)
     global_parser.add_argument(
         "--base-url",
-        default=os.environ.get("DATADATA_BASE_URL", "https://www.datadata.com/api/v1"),
+        default=os.environ.get("DATADATA_BASE_URL", "https://www.datadata.com"),
     )
     global_parser.add_argument(
         "--api-key",
@@ -126,7 +126,27 @@ def parse_args() -> argparse.Namespace:
     )
     scan_parser.add_argument("--datasource-id", required=True)
 
-    # --- Device Flow 两步式子命令（供 Agent 使用） ---
+    whoami_parser = subparsers.add_parser(
+        "whoami", help="Fetch current user info and API key metadata."
+    )
+
+    search_parser = subparsers.add_parser(
+        "search-datasource",
+        help="搜索数据源。支持 username:name 精确查找、社区公开搜索（Meilisearch）及私有数据源搜索。",
+    )
+    search_parser.add_argument(
+        "--query",
+        required=True,
+        help="搜索关键词，支持 username/datasource-name 格式精确查找",
+    )
+    search_parser.add_argument(
+        "--limit",
+        type=int,
+        default=20,
+        help="每个来源返回的最大结果数（默认 20）",
+    )
+
+    # --- Device Flow 两步式子命令（供 Agent 使用）---
     device_start_parser = subparsers.add_parser(
         "device-flow-start",
         help="发起设备授权（非阻塞），输出 JSON 含 verificationUriComplete 后立即退出。",
@@ -158,7 +178,7 @@ def build_url(base_url: str, path: str, query: dict[str, str] | None = None) -> 
 
 def fetch_datasource_info(base_url: str, api_key: str, datasource_id: str) -> Any:
     return request_json(
-        build_url(base_url, f"/datasources/{datasource_id}/info"), api_key
+        build_url(base_url, f"/api/v1/datasources/{datasource_id}/info"), api_key
     )
 
 
@@ -167,7 +187,8 @@ def fetch_list_tables(
 ) -> Any:
     query = {"schemaName": schema_name} if schema_name else None
     return request_json(
-        build_url(base_url, f"/datasources/{datasource_id}/list-tables", query), api_key
+        build_url(base_url, f"/api/v1/datasources/{datasource_id}/list-tables", query),
+        api_key,
     )
 
 
@@ -179,14 +200,16 @@ def fetch_describe_table(
         "tableName": table_name,
     }
     return request_json(
-        build_url(base_url, f"/datasources/{datasource_id}/describe-table", query),
+        build_url(
+            base_url, f"/api/v1/datasources/{datasource_id}/describe-table", query
+        ),
         api_key,
     )
 
 
 def fetch_scan_datasource(base_url: str, api_key: str, datasource_id: str) -> Any:
     return request_json(
-        build_url(base_url, f"/datasources/{datasource_id}/scan"),
+        build_url(base_url, f"/api/v1/datasources/{datasource_id}/scan"),
         api_key,
         method="POST",
     )
@@ -204,7 +227,7 @@ def fetch_create_table(
         "columns": columns,
     }
     return request_json(
-        build_url(base_url, f"/data-spaces/{datasource_id}/create-table"),
+        build_url(base_url, f"/api/v1/data-spaces/{datasource_id}/create-table"),
         api_key,
         method="POST",
         payload=payload,
@@ -225,7 +248,7 @@ def fetch_insert_rows(
         "rows": rows,
     }
     return request_json(
-        build_url(base_url, f"/data-spaces/{datasource_id}/insert-rows"),
+        build_url(base_url, f"/api/v1/data-spaces/{datasource_id}/insert-rows"),
         api_key,
         method="POST",
         payload=payload,
@@ -240,7 +263,7 @@ def fetch_data_space_describe_table(
 ) -> Any:
     payload = {"tableName": table_name}
     return request_json(
-        build_url(base_url, f"/data-spaces/{datasource_id}/describe-table"),
+        build_url(base_url, f"/api/v1/data-spaces/{datasource_id}/describe-table"),
         api_key,
         method="POST",
         payload=payload,
@@ -255,7 +278,7 @@ def fetch_data_space_drop_table(
 ) -> Any:
     payload = {"tableName": table_name}
     return request_json(
-        build_url(base_url, f"/data-spaces/{datasource_id}/drop-table"),
+        build_url(base_url, f"/api/v1/data-spaces/{datasource_id}/drop-table"),
         api_key,
         method="POST",
         payload=payload,
@@ -283,7 +306,7 @@ def request_json(
                 return parse_ndjson(raw)
             return json.loads(raw)
     except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
+        body = exc.read().decode("utf-8", errors="replace").strip()
         raise RuntimeError(f"HTTP {exc.code} for {url}: {body}") from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(f"Request failed for {url}: {exc}") from exc
@@ -299,7 +322,7 @@ def request_text(url: str, api_key: str) -> str:
         with urllib.request.urlopen(req) as resp:
             return resp.read().decode("utf-8")
     except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
+        body = exc.read().decode("utf-8", errors="replace").strip()
         raise RuntimeError(f"HTTP {exc.code} for {url}: {body}") from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(f"Request failed for {url}: {exc}") from exc
@@ -315,7 +338,7 @@ def request_bytes(url: str, api_key: str) -> tuple[bytes, str]:
         with urllib.request.urlopen(req) as resp:
             return resp.read(), resp.headers.get("Content-Type", "")
     except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
+        body = exc.read().decode("utf-8", errors="replace").strip()
         raise RuntimeError(f"HTTP {exc.code} for {url}: {body}") from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(f"Request failed for {url}: {exc}") from exc
@@ -502,7 +525,7 @@ def start_device_flow(
     if expires_at:
         payload["expiresAt"] = expires_at
     return request_json(
-        build_url(base_url, "/api-keys/device-flow/code"),
+        build_url(base_url, "/api/v1/api-keys/device-flow/code"),
         "",  # 无需 API Key
         method="POST",
         payload=payload,
@@ -517,7 +540,7 @@ def poll_device_token(
     while time.time() < deadline:
         try:
             result = request_json(
-                build_url(base_url, "/api-keys/device-flow/token"),
+                build_url(base_url, "/api/v1/api-keys/device-flow/token"),
                 "",  # 无需 API Key
                 method="POST",
                 payload={"deviceCode": device_code},
@@ -768,7 +791,7 @@ def create_execution(
     if datasources:
         payload["datasources"] = datasources
     response = request_json(
-        build_url(base_url, "/queries/execute-adhoc"),
+        build_url(base_url, "/api/v1/queries/execute-adhoc"),
         api_key,
         method="POST",
         payload=payload,
@@ -788,7 +811,7 @@ def fetch_result_artifact(
     query: dict[str, str] = {"format": fmt}
     if timeout is not None:
         query["timeout"] = str(timeout)
-    url = build_url(base_url, f"/executions/{execution_id}/result", query)
+    url = build_url(base_url, f"/api/v1/executions/{execution_id}/result", query)
     if fmt == "csv":
         text = request_text(url, api_key)
         return text.encode("utf-8"), "text/csv"
@@ -979,6 +1002,113 @@ def run_scan_datasource(args: argparse.Namespace) -> int:
     return 0
 
 
+def fetch_whoami(base_url: str, api_key: str) -> Any:
+    return request_json(
+        build_url(base_url, "/api/v1/auth/current"),
+        api_key,
+    )
+
+
+# --- Datasource Search ---
+
+
+def search_public_datasource(
+    base_url: str,
+    query: str,
+    filter_str: str | None = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """通过 Meilisearch 搜索引擎搜索公开数据源。无需认证。"""
+    params: dict[str, str] = {"q": query, "limit": str(limit), "offset": str(offset)}
+    if filter_str:
+        params["filter"] = filter_str
+    url = build_url(base_url, "/api/search-engine/indexes/datasource/search", params)
+    return request_json(url, "")
+
+
+def search_owner_datasource(
+    base_url: str,
+    api_key: str,
+    search: str | None = None,
+    limit: int = 10,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """通过私有接口搜索当前用户的数据源（含公开和私有）。需要认证。"""
+    params: dict[str, str] = {
+        "scope": "owner",
+        "sort": "updated_at:desc",
+        "limit": str(limit),
+        "offset": str(offset),
+    }
+    if search:
+        params["search"] = search
+    url = build_url(base_url, "/api/v1/datasources", params)
+    return request_json(url, api_key)
+
+
+def normalize_search_result_from_public(hit: dict[str, Any]) -> dict[str, Any]:
+    """将搜索引擎结果标准化为统一格式。"""
+    user = hit.get("user", {})
+    return {
+        "id": hit.get("id", ""),
+        "name": hit.get("name", ""),
+        "displayName": hit.get("displayName", ""),
+        "description": hit.get("description", ""),
+        "visibility": hit.get("visibility", "public"),
+        "tags": hit.get("tags", []),
+        "username": user.get("username", ""),
+        "userDisplayName": user.get("displayName", ""),
+        "source": "public",
+    }
+
+
+def normalize_search_result_from_owner(item: dict[str, Any]) -> dict[str, Any]:
+    """将私有接口结果标准化为统一格式。"""
+    user = item.get("user", {})
+    return {
+        "id": item.get("id", ""),
+        "name": item.get("name", ""),
+        "displayName": item.get("displayName", ""),
+        "description": item.get("description", ""),
+        "visibility": item.get("visibility", "public"),
+        "tags": item.get("tags", []),
+        "type": item.get("type", ""),
+        "username": user.get("username", ""),
+        "userDisplayName": user.get("displayName", ""),
+        "source": "private",
+    }
+
+
+def _parse_username_name(query: str) -> tuple[str | None, str]:
+    """解析 username/datasource-name 格式。
+
+    返回 (username | None, name)。若无斜杠则 username 为 None。
+    """
+    if "/" in query:
+        parts = query.split("/", 1)
+        username = parts[0].strip()
+        name = parts[1].strip()
+        if username and name:
+            return username, name
+    return None, query
+
+
+def _get_current_username(base_url: str, api_key: str) -> str | None:
+    """通过 whoami 获取当前用户名。失败时返回 None。"""
+    try:
+        whoami = fetch_whoami(base_url, api_key)
+        return whoami.get("user", {}).get("username")
+    except RuntimeError:
+        return None
+
+
+def run_whoami(args: argparse.Namespace) -> int:
+    response = fetch_whoami(args.base_url, args.api_key)
+    print(json.dumps(response, ensure_ascii=False, indent=2))
+    return 0
+
+
 def run_insert_rows(args: argparse.Namespace) -> int:
     try:
         columns = json.loads(args.columns)
@@ -1051,9 +1181,129 @@ def _load_config_key_raw() -> str | None:
 
 
 def _is_auth_error(exc: Exception) -> bool:
-    """判断异常是否为 401/403 认证错误。"""
+    """判断异常是否为 API Key 认证错误（401 或 Key 无效的 403）。
+
+    403 "permission denied"（操作他人资源等正常权限拒绝）不算认证错误，
+    只有 401 或 403 中明确提示 Key 不存在/无效的才算。
+    """
     msg = str(exc)
-    return "HTTP 401" in msg or "HTTP 403" in msg
+    if "HTTP 401" in msg:
+        return True
+    if "HTTP 403" in msg:
+        # 403 且 body 中明确提示 Key 相关问题时才认为是 Key 失效
+        key_related = (
+            "api key not exists" in msg.lower()
+            or "api key" in msg.lower()
+            and "expired" in msg.lower()
+        )
+        return key_related
+    return False
+
+
+def run_search_datasource(args: argparse.Namespace) -> int:
+    """搜索数据源，统一处理三种搜索方式。
+
+    1. username/datasource-name 精确格式：
+       - username 匹配当前用户 → 通过私有接口搜索
+       - username 不匹配 → 通过搜索引擎 + user.username 过滤
+    2. 普通关键词 → 同时搜索公开（搜索引擎）和私有（owner 接口）
+    """
+    query = args.query.strip()
+    base_url = args.base_url
+
+    username, name = _parse_username_name(query)
+    results: list[dict[str, Any]] = []
+    sources: list[str] = []
+
+    if username is not None:
+        # 精确格式：username/datasource-name
+        current_user = None
+        if args.api_key:
+            current_user = _get_current_username(base_url, args.api_key)
+
+        if current_user and current_user == username and args.api_key:
+            # 匹配当前用户 → 通过私有接口搜索
+            try:
+                owner_result = search_owner_datasource(
+                    base_url, args.api_key, search=name, limit=args.limit
+                )
+                items = owner_result.get("data", [])
+                for item in items:
+                    results.append(normalize_search_result_from_owner(item))
+                sources.append("private")
+            except RuntimeError as exc:
+                print(
+                    f"私有数据源搜索失败: {exc}",
+                    file=sys.stderr,
+                )
+        else:
+            # 非当前用户 → 通过搜索引擎 + user.username 过滤
+            filter_str = f"user.username = {username}"
+            try:
+                public_result = search_public_datasource(
+                    base_url, query=name, filter_str=filter_str, limit=args.limit
+                )
+                for hit in public_result.get("hits", []):
+                    results.append(normalize_search_result_from_public(hit))
+                sources.append("public")
+            except RuntimeError as exc:
+                print(
+                    f"公开数据源搜索失败: {exc}",
+                    file=sys.stderr,
+                )
+    else:
+        # 普通关键词搜索：始终同时搜索公开和私有
+        # 1. 搜索引擎搜索公开数据源
+        try:
+            public_result = search_public_datasource(
+                base_url, query=query, limit=args.limit
+            )
+            for hit in public_result.get("hits", []):
+                results.append(normalize_search_result_from_public(hit))
+            sources.append("public")
+        except RuntimeError as exc:
+            print(
+                f"公开数据源搜索失败: {exc}",
+                file=sys.stderr,
+            )
+
+        # 2. 私有接口搜索当前用户的数据源
+        if not args.api_key:
+            print(
+                "私有数据源搜索需要 API Key，已跳过。请先配置认证。",
+                file=sys.stderr,
+            )
+        else:
+            try:
+                owner_result = search_owner_datasource(
+                    base_url, args.api_key, search=query, limit=args.limit
+                )
+                items = owner_result.get("data", [])
+                for item in items:
+                    item_normalized = normalize_search_result_from_owner(item)
+                    # 去重：如果 public 结果中已有同 ID，跳过
+                    existing_ids = {r["id"] for r in results}
+                    if item_normalized["id"] not in existing_ids:
+                        results.append(item_normalized)
+                sources.append("private")
+            except RuntimeError as exc:
+                print(
+                    f"私有数据源搜索失败: {exc}",
+                    file=sys.stderr,
+                )
+
+    # 添加序号
+    for i, r in enumerate(results, 1):
+        r["index"] = i
+
+    output = {
+        "query": query,
+        "sources": sources,
+        "resultCount": len(results),
+        "results": results,
+    }
+    print(json.dumps(output, ensure_ascii=False, indent=2))
+    return 0
 
 
 def main() -> int:
@@ -1066,8 +1316,12 @@ def main() -> int:
         print("Missing --base-url or DATADATA_BASE_URL", file=sys.stderr)
         return 2
 
-    # device-flow 子命令不需要 API Key，直接分发
-    if args.command in ("device-flow-start", "device-flow-complete"):
+    # device-flow 和 search-datasource（可仅公开搜索）子命令不需要 API Key，直接分发
+    if args.command in (
+        "device-flow-start",
+        "device-flow-complete",
+        "search-datasource",
+    ):
         return _dispatch(args)
 
     # 如果未提供 API Key，打印两步式设备授权指引后退出
@@ -1094,18 +1348,22 @@ def main() -> int:
     if _api_key_source is None:
         _api_key_source = _detect_api_key_source(args)
 
-    # 执行命令，遇到 401/403 且 key 来自 config 时自动清除过期配置
+    # 执行命令，遇到 Key 认证错误且来自 config 时自动清除过期配置
     try:
         return _dispatch(args)
     except RuntimeError as exc:
         if _is_auth_error(exc) and _api_key_source == "config":
             print(
-                f"API Key 已失效（{exc}），已清除过期配置。请重新运行 device-flow-start 签发新 Key。",
+                json.dumps(
+                    {"error": "api_key_expired", "detail": str(exc)}, ensure_ascii=False
+                ),
                 file=sys.stderr,
             )
             clear_api_key_config()
             return 2
-        raise
+        # 其他错误 → 输出简洁 JSON，不打印堆栈
+        print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
+        return 1
 
 
 def _dispatch(args: argparse.Namespace) -> int:
@@ -1130,6 +1388,10 @@ def _dispatch(args: argparse.Namespace) -> int:
         return run_insert_rows(args)
     if args.command == "scan-datasource":
         return run_scan_datasource(args)
+    if args.command == "whoami":
+        return run_whoami(args)
+    if args.command == "search-datasource":
+        return run_search_datasource(args)
     if args.command == "device-flow-start":
         return run_device_flow_start(args)
     if args.command == "device-flow-complete":
