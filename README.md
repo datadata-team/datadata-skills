@@ -2,42 +2,60 @@
 
 Agent skills for the [Datadata](https://www.datadata.com) analytics platform.
 
+## Installation
+
+```bash
+npx skills add datadata-team/datadata-skills
+```
+
+> **Tip:** If you use pnpm, replace `npx` with `pnpx`:
+>
+> ```bash
+> pnpx skills add datadata-team/datadata-skills
+> ```
+
 ## Skills
 
 ### datadata-api
 
-通过自然语言与 Datadata 平台交互，围绕两大核心功能：
+Interact with Datadata through natural language. Two core capabilities:
 
-**查询数据** — 查看数据源元数据、列出表、描述列结构、执行 SQL 查询（DuckDB / ClickHouse，支持跨源 join）、下载 NDJSON/CSV 结果
+**Query data** — Inspect datasource metadata, list tables, describe column schemas, run SQL queries (DuckDB / ClickHouse, cross-source joins), download results as NDJSON or CSV.
 
-**录入数据** — 在 Data Spaces（ducklake）中创建表、批量插入数据、删除表，录入后可通过标准查询读取
+**Ingest data** — Create tables in Data Spaces (ducklake), batch-insert rows, drop tables. Ingested data is immediately queryable via standard SQL.
 
-```bash
-# Codex
-npx skills add https://github.com/datadata-team/datadata-skills/datadata-api --agent codex --global
+See [skills/datadata-api/SKILL.md](./skills/datadata-api/SKILL.md) for detailed usage.
 
-# Claude Code
-npx skills add https://github.com/datadata-team/datadata-skills/datadata-api --agent claude-code --global
-```
+### datadata-dql
 
-详细用法见 [datadata-api/SKILL.md](./datadata-api/SKILL.md)。
+Write DQL (Datadata Query Language) scripts — a Starlark-based scripting language for data transformation, cleaning, generation, and custom processing logic. Supports DataFrame/Series operations, SQL queries, HTTP requests, 2D drawing, and more.
 
-### 获取 API Key
+See [skills/datadata-dql/SKILL.md](./skills/datadata-dql/SKILL.md) for detailed usage.
 
-在 Datadata 平台中创建 API Key，根据用途勾选所需权限：
+### Authentication
 
-| 权限                    | 用途                 |
-| ----------------------- | -------------------- |
-| `queries:execute-adhoc` | 执行 SQL 查询        |
-| `executions:get`        | 获取执行结果         |
-| `datasources:read`      | 读取数据源元数据     |
-| `datasources:scan`      | 触发异步 schema 扫描 |
-| `data-spaces:write`     | 创建表和插入数据     |
+The skill supports two ways to authenticate:
 
-1. 登录 [datadata.com](https://www.datadata.com)
-2. 头像 → Settings → 左侧 "API Keys" → 创建新 Key
-3. 勾选所需权限后创建
-4. 配置到环境变量：
+#### Automatic (recommended)
+
+If no API Key is configured, the agent will automatically guide you through device authorization when you first run a command — just follow the link displayed in the terminal to complete sign-in. The key is then cached locally for 90 days.
+
+#### Manual (fallback)
+
+Create an API Key in the Datadata platform with the required permissions:
+
+| Permission              | Purpose                       |
+| ----------------------- | ----------------------------- |
+| `queries:execute-adhoc` | Run SQL queries               |
+| `executions:get`        | Retrieve query results        |
+| `datasources:read`      | Read datasource metadata      |
+| `datasources:scan`      | Trigger async schema scans    |
+| `data-spaces:write`     | Create tables and insert data |
+
+1. Sign in to [datadata.com](https://www.datadata.com)
+2. Avatar → Settings → "API Keys" (left sidebar) → Create a new key
+3. Select the required permissions
+4. Set it as an environment variable:
 
 ```bash
 export DATADATA_API_KEY="ak_..."
