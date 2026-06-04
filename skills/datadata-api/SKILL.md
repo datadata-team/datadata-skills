@@ -11,6 +11,7 @@ description: "通过 CLI 查询 Datadata — 运行临时 SQL、检查数据源�
 
 - **搜索数据源** — 支持社区公开搜索（无需登录）、私有数据源搜索、`username/name` 精确查找
 - **元数据查询** — 检查数据源信息、列出表、描述列结构
+- **元数据增强** — 设置表注释和列注释，提升数据可理解性
 - **执行 SQL 查询** — 通过 `execute-adhoc` 执行 SELECT 查询，支持 DuckDB 和 ClickHouse 引擎，DuckDB 引擎可跨数据源关联
 - **结果下载** — 以 NDJSON 或 CSV 格式下载查询结果
 - **Schema 扫描** — 触发异步扫描，刷新数据源的表元数据
@@ -37,6 +38,7 @@ description: "通过 CLI 查询 Datadata — 运行临时 SQL、检查数据源�
 | 查询 Datadata 中的数据      | "帮我查一下销售数据"、"统计上个月的用户增长"                                     |
 | 搜索数据源                  | "搜索名叫 customers 的数据源"、"找一下 hungtcs 的公开数据"、"看看我有哪些数据源" |
 | 探索数据源结构              | "看看这个 datasource 有哪些表"、"描述一下 customers 表的字段"                    |
+| 设置表和列的注释            | "给 users 表加个注释"、"把 email 列的注释设为'用户邮箱'"                         |
 | 跨数据源关联分析            | "把 MySQL 的订单表和 CSV 的用户信息 join 一下"                                   |
 | 数据写入与持久化            | "把爬虫结果存到 data space 里"、"批量插入这些数据"                               |
 | 获取查询结果                | "下载上次查询的 NDJSON 结果"                                                     |

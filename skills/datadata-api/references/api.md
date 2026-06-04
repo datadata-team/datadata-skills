@@ -36,22 +36,23 @@ def _request(url, method="GET", payload=None):
 
 ## 端点总览
 
-| 类型        | 方法 | 路径                                           | 权限                    | CLI 子命令                    |
-| ----------- | ---- | ---------------------------------------------- | ----------------------- | ----------------------------- |
-| Datasource  | GET  | `/api/v1/datasources/{id}/info`                | `datasources:read`      | `get-datasource-info`         |
-| Datasource  | GET  | `/api/v1/datasources/{id}/list-tables`         | `datasources:read`      | `list-tables`                 |
-| Datasource  | GET  | `/api/v1/datasources/{id}/describe-table`      | `datasources:read`      | `describe-table`              |
-| Datasource  | POST | `/api/v1/datasources/{id}/scan`                | `datasource:scan`       | `scan-datasource`             |
-| Datasource  | GET  | `/api/v1/datasources`                          | `datasources:read`      | `search-datasource` (private) |
-| Search      | GET  | `/api/search-engine/indexes/datasource/search` | 无                      | `search-datasource` (public)  |
-| Execution   | POST | `/api/v1/queries/execute-adhoc`                | `queries:execute-adhoc` | `execute-adhoc`               |
-| Execution   | GET  | `/api/v1/executions/{id}/result`               | `executions:get`        | `get-execution-result`        |
-| Data Spaces | POST | `/api/v1/data-spaces/{id}/create-table`        | `data-spaces:write`     | `create-table`                |
-| Data Spaces | POST | `/api/v1/data-spaces/{id}/describe-table`      | `data-spaces:write`     | `describe-data-space-table`   |
-| Data Spaces | POST | `/api/v1/data-spaces/{id}/drop-table`          | `data-spaces:write`     | `drop-data-space-table`       |
-| Device Flow | POST | `/api/v1/api-keys/device-flow/code`            | 无                      | 自动（缺少 API Key 时触发）   |
-| Device Flow | POST | `/api/v1/api-keys/device-flow/token`           | 无                      | 自动（后台轮询）              |
-| Auth        | GET  | `/api/v1/auth/current`                         | 无（需有效 API Key）    | `whoami`                      |
+| 类型        | 方法 | 路径                                                | 权限                    | CLI 子命令                    |
+| ----------- | ---- | --------------------------------------------------- | ----------------------- | ----------------------------- |
+| Datasource  | GET  | `/api/v1/datasources/{id}/info`                     | `datasources:read`      | `get-datasource-info`         |
+| Datasource  | GET  | `/api/v1/datasources/{id}/list-tables`              | `datasources:read`      | `list-tables`                 |
+| Datasource  | GET  | `/api/v1/datasources/{id}/describe-table`           | `datasources:read`      | `describe-table`              |
+| Datasource  | POST | `/api/v1/datasources/{id}/scan`                     | `datasource:scan`       | `scan-datasource`             |
+| Datasource  | POST | `/api/v1/datasources/{id}/{schema}/{table}/comment` | `datasources:scan`      | `set-table-comment`           |
+| Datasource  | GET  | `/api/v1/datasources`                               | `datasources:read`      | `search-datasource` (private) |
+| Search      | GET  | `/api/search-engine/indexes/datasource/search`      | 无                      | `search-datasource` (public)  |
+| Execution   | POST | `/api/v1/queries/execute-adhoc`                     | `queries:execute-adhoc` | `execute-adhoc`               |
+| Execution   | GET  | `/api/v1/executions/{id}/result`                    | `executions:get`        | `get-execution-result`        |
+| Data Spaces | POST | `/api/v1/data-spaces/{id}/create-table`             | `data-spaces:write`     | `create-table`                |
+| Data Spaces | POST | `/api/v1/data-spaces/{id}/describe-table`           | `data-spaces:write`     | `describe-data-space-table`   |
+| Data Spaces | POST | `/api/v1/data-spaces/{id}/drop-table`               | `data-spaces:write`     | `drop-data-space-table`       |
+| Device Flow | POST | `/api/v1/api-keys/device-flow/code`                 | 无                      | 自动（缺少 API Key 时触发）   |
+| Device Flow | POST | `/api/v1/api-keys/device-flow/token`                | 无                      | 自动（后台轮询）              |
+| Auth        | GET  | `/api/v1/auth/current`                              | 无（需有效 API Key）    | `whoami`                      |
 
 ---
 
@@ -165,6 +166,87 @@ print(data["taskId"])
 | ------ | ----------------- |
 | 200    | 已创建扫描任务    |
 | 404    | datasource 未找到 |
+
+### 设置表注释和列注释
+
+`POST /datasources/{datasourceId}/{schemaName}/{tableName}/comment`
+
+一次性设置指定表的表注释和多个列注释。未传入的字段不更新，保持原样。需要 `datasources:scan` 权限，且请求者必须是数据源所有者。
+
+请求体：
+
+| 字段             | 类型                             | 必填 | 说明                                                                     |
+| ---------------- | -------------------------------- | ---- | ------------------------------------------------------------------------ |
+| `tableComment`   | string \| null                   | 否   | 表注释，传 `null` 清空；不传则保持原样                                   |
+| `columnComments` | `Record<string, string \| null>` | 否   | 列注释映射，key 为列名，value 为注释；传 `null` 清空；未出现的列保持原样 |
+
+CLI：
+
+```bash
+# 只设表注释
+python3 scripts/datadata_query.py set-table-comment \
+  --datasource-id "CXNGJifvqE48kdzKVC9o5" \
+  --schema-name "public" \
+  --table-name "users" \
+  --table-comment "用户信息表"
+
+# 设表注释 + 列注释
+python3 scripts/datadata_query.py set-table-comment \
+  --datasource-id "CXNGJifvqE48kdzKVC9o5" \
+  --schema-name "public" \
+  --table-name "users" \
+  --table-comment "用户信息表" \
+  --column-comments '{"id": "主键", "email": "用户邮箱地址"}'
+
+# 只设列注释
+python3 scripts/datadata_query.py set-table-comment \
+  --datasource-id "CXNGJifvqE48kdzKVC9o5" \
+  --schema-name "public" \
+  --table-name "users" \
+  --column-comments '{"email": "用户邮箱地址", "username": null}'
+```
+
+直接调用：
+
+```python
+# 同时设置表注释和列注释
+payload = {
+    "tableComment": "用户信息表",
+    "columnComments": {
+        "id": "主键",
+        "email": "用户邮箱地址",
+        "username": "用户名"
+    }
+}
+data = _request(
+    f"{BASE_URL}/api/v1/datasources/CXNGJifvqE48kdzKVC9o5/public/users/comment",
+    method="POST", payload=payload
+)
+print(data["tableComment"])    # "用户信息表"
+print(data["columnComments"])  # {"id": "主键", "email": "用户邮箱地址", "username": "用户名"}
+```
+
+返回示例（200）：
+
+```json
+{
+  "datasourceId": "dsrc_abc123",
+  "schemaName": "public",
+  "tableName": "users",
+  "tableComment": "用户信息表",
+  "columnComments": {
+    "id": "主键",
+    "email": "用户邮箱地址",
+    "username": "用户名"
+  }
+}
+```
+
+| 状态码 | 含义                                                   |
+| ------ | ------------------------------------------------------ |
+| 401    | 未认证或 API Key 无效                                  |
+| 403    | 无权限（非数据源所有者或缺少 `datasources:scan` 权限） |
+| 404    | 数据源不存在，或表首列不存在                           |
 
 ### 搜索公开数据源（Meilisearch 引擎）
 

@@ -126,6 +126,24 @@ def parse_args() -> argparse.Namespace:
     )
     scan_parser.add_argument("--datasource-id", required=True)
 
+    set_table_comment_parser = subparsers.add_parser(
+        "set-table-comment",
+        help="Set table comment and/or column comments on a datasource table.",
+    )
+    set_table_comment_parser.add_argument("--datasource-id", required=True)
+    set_table_comment_parser.add_argument("--schema-name", required=True)
+    set_table_comment_parser.add_argument("--table-name", required=True)
+    set_table_comment_parser.add_argument(
+        "--table-comment",
+        default=None,
+        help='Table comment, use "" to clear; omit to leave unchanged',
+    )
+    set_table_comment_parser.add_argument(
+        "--column-comments",
+        default=None,
+        help='Column comments as JSON object, e.g. \'{"col": "comment"}\'; value null to clear; omit to leave unchanged',
+    )
+
     whoami_parser = subparsers.add_parser(
         "whoami", help="Fetch current user info and API key metadata."
     )
@@ -212,6 +230,31 @@ def fetch_scan_datasource(base_url: str, api_key: str, datasource_id: str) -> An
         build_url(base_url, f"/api/v1/datasources/{datasource_id}/scan"),
         api_key,
         method="POST",
+    )
+
+
+def fetch_set_table_comment(
+    base_url: str,
+    api_key: str,
+    datasource_id: str,
+    schema_name: str,
+    table_name: str,
+    table_comment: str | None = None,
+    column_comments: dict[str, str | None] | None = None,
+) -> Any:
+    payload: dict[str, Any] = {}
+    if table_comment is not None:
+        payload["tableComment"] = table_comment or None
+    if column_comments is not None:
+        payload["columnComments"] = column_comments
+    return request_json(
+        build_url(
+            base_url,
+            f"/api/v1/datasources/{datasource_id}/{schema_name}/{table_name}/comment",
+        ),
+        api_key,
+        method="POST",
+        payload=payload,
     )
 
 
@@ -1002,6 +1045,31 @@ def run_scan_datasource(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_set_table_comment(args: argparse.Namespace) -> int:
+    column_comments = None
+    if args.column_comments is not None:
+        try:
+            column_comments = json.loads(args.column_comments)
+        except json.JSONDecodeError as exc:
+            print(f"Invalid --column-comments JSON: {exc}", file=sys.stderr)
+            return 2
+        if not isinstance(column_comments, dict):
+            print("--column-comments must be a JSON object", file=sys.stderr)
+            return 2
+
+    response = fetch_set_table_comment(
+        args.base_url,
+        args.api_key,
+        args.datasource_id,
+        args.schema_name,
+        args.table_name,
+        args.table_comment,
+        column_comments,
+    )
+    print(json.dumps(response, ensure_ascii=False, indent=2))
+    return 0
+
+
 def fetch_whoami(base_url: str, api_key: str) -> Any:
     return request_json(
         build_url(base_url, "/api/v1/auth/current"),
@@ -1388,6 +1456,8 @@ def _dispatch(args: argparse.Namespace) -> int:
         return run_insert_rows(args)
     if args.command == "scan-datasource":
         return run_scan_datasource(args)
+    if args.command == "set-table-comment":
+        return run_set_table_comment(args)
     if args.command == "whoami":
         return run_whoami(args)
     if args.command == "search-datasource":

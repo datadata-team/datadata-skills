@@ -293,6 +293,44 @@ python3 scripts/datadata_query.py scan-datasource --datasource-id "CXNGJifvqE48k
 
 打印 `{"taskId": "...", "taskType": "scan", "state": "active"}` 形式的 JSON。扫描为异步执行 — 对于 ducklake 数据源上需要实时表结构查询的场景，使用 `describe-data-space-table`。
 
+### `set-table-comment`
+
+一次性设置表注释和列注释。未传入的字段不更新，保持原样。
+
+| 选项                | 必填 | 描述                                                           |
+| ------------------- | ---- | -------------------------------------------------------------- |
+| `--datasource-id`   | 是   | 数据源 ID                                                      |
+| `--schema-name`     | 是   | Schema 名称                                                    |
+| `--table-name`      | 是   | 表或视图名                                                     |
+| `--table-comment`   | 否   | 表注释内容；传 `""`（空字符串）清空；不传则保持原样            |
+| `--column-comments` | 否   | 列注释 JSON 对象，如 `'{"col": "注释"}'`；value 为 `null` 清空 |
+
+```bash
+# 只设表注释
+python3 scripts/datadata_query.py set-table-comment \
+  --datasource-id "CXNGJifvqE48kdzKVC9o5" \
+  --schema-name "public" \
+  --table-name "users" \
+  --table-comment "用户信息表"
+
+# 设表注释 + 列注释
+python3 scripts/datadata_query.py set-table-comment \
+  --datasource-id "CXNGJifvqE48kdzKVC9o5" \
+  --schema-name "public" \
+  --table-name "users" \
+  --table-comment "用户信息表" \
+  --column-comments '{"id": "主键", "email": "用户邮箱地址"}'
+
+# 只设列注释（含清空某列注释）
+python3 scripts/datadata_query.py set-table-comment \
+  --datasource-id "CXNGJifvqE48kdzKVC9o5" \
+  --schema-name "public" \
+  --table-name "users" \
+  --column-comments '{"email": "更新后的注释", "old_col": null}'
+```
+
+需要 `datasources:scan` 权限，且请求者必须是数据源所有者。
+
 ### `whoami`
 
 获取当前用户信息及 API Key 权限详情。无需参数。
