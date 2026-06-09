@@ -16,13 +16,19 @@ npx skills add datadata-team/datadata-skills
 
 ## Skills
 
+### datadata-mcp (recommended)
+
+Interact with Datadata through MCP (Model Context Protocol) — **no API Key required**, authentication handled via OAuth.
+
+**Query data** — Search datasources, inspect metadata, list tables, describe column schemas, run SQL queries (DuckDB / ClickHouse, cross-source joins), set table/column comments.
+
+**Manage Data Spaces** — Create tables, batch-insert rows, describe table structures, drop tables on ducklake datasources.
+
+See [skills/datadata-mcp/SKILL.md](./skills/datadata-mcp/SKILL.md) for detailed usage.
+
 ### datadata-api
 
-Interact with Datadata through natural language. Two core capabilities:
-
-**Query data** — Inspect datasource metadata, list tables, describe column schemas, run SQL queries (DuckDB / ClickHouse, cross-source joins), download results as NDJSON or CSV.
-
-**Ingest data** — Create tables in Data Spaces (ducklake), batch-insert rows, drop tables. Ingested data is immediately queryable via standard SQL.
+CLI-based interaction with Datadata. Requires API Key setup.
 
 See [skills/datadata-api/SKILL.md](./skills/datadata-api/SKILL.md) for detailed usage.
 
@@ -34,7 +40,9 @@ See [skills/datadata-dql/SKILL.md](./skills/datadata-dql/SKILL.md) for detailed 
 
 ### Authentication
 
-The skill supports two ways to authenticate:
+**datadata-mcp (recommended)**: Uses OAuth — sign in once, no API Key needed.
+
+**datadata-api**: Two ways to authenticate:
 
 #### Automatic (recommended)
 

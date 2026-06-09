@@ -506,11 +506,11 @@ _request(f"{BASE_URL}/api/v1/data-spaces/123/drop-table", method="POST", payload
 
 请求体：
 
-| 字段        | 类型          | 必填 | 说明                              |
-| ----------- | ------------- | ---- | --------------------------------- |
-| `tableName` | string        | 是   | 表名                              |
-| `columns`   | array[string] | 是   | 与目标表列名一致的列名列表        |
-| `rows`      | array[array]  | 是   | 每一行数据，按 `columns` 顺序排列 |
+| 字段        | 类型            | 必填 | 说明                              |
+| ----------- | --------------- | ---- | --------------------------------- |
+| `tableName` | `string`        | 是   | 表名                              |
+| `columns`   | `array[string]` | 是   | 与目标表列名一致的列名列表        |
+| `rows`      | `array[array]`  | 是   | 每一行数据，按 `columns` 顺序排列 |
 
 插入操作为事务性：全部成功或全部回滚。`map[string]any` 值会自动序列化为 JSON 字符串。
 

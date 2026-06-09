@@ -2,16 +2,19 @@
 
 ## What this repo is
 
-Skills repository for the Datadata analytics platform. Two skills:
+Skills repository for the Datadata analytics platform. Three skills:
 
-| Skill               | Capabilities                                                                                                        | Instructions                             |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| **`datadata-api/`** | 查询数据 (SQL queries, metadata inspection, result download) · 录入数据 (Data-space table management on `ducklake`) | [SKILL.md](skills/datadata-api/SKILL.md) |
-| **`datadata-dql/`** | DQL (Starlark) 脚本编写 — 数据转换、DataFrame/Series 操作、SQL 查询、HTTP 请求、2D 绘图                             | [SKILL.md](skills/datadata-dql/SKILL.md) |
+| Skill               | Capabilities                                                                                                                 | Instructions                             |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| **`datadata-mcp/`** | 通过 MCP Server 进行数据查询与管理 — 搜索、元信息、SQL、Data Spaces 全流程。**有 MCP connector 时优先使用。**                | [SKILL.md](skills/datadata-mcp/SKILL.md) |
+| **`datadata-api/`** | 通过 CLI 查询数据 (SQL queries, metadata inspection, result download) · 录入数据 (Data-space table management on `ducklake`) | [SKILL.md](skills/datadata-api/SKILL.md) |
+| **`datadata-dql/`** | DQL (Starlark) 脚本编写 — 数据转换、DataFrame/Series 操作、SQL 查询、HTTP 请求、2D 绘图                                      | [SKILL.md](skills/datadata-dql/SKILL.md) |
 
 ## Critical agent rules (must-follow)
 
-> 以下规则大部分适用于 `datadata-api`。`datadata-dql` 的规则见其 [SKILL.md](skills/datadata-dql/SKILL.md)。
+> **🔴 MCP 优先原则**：当 `datadata-mcp` connector 可用时，交互式操作优先使用 MCP。需要生成独立 Python 脚本（爬虫/ETL）时使用 `datadata-api`。
+>
+> 以下规则大部分适用于 `datadata-api`。`datadata-mcp` 和 `datadata-dql` 的规则见各自的 SKILL.md。
 
 ### 🔐 Authentication（datadata-api）
 
@@ -85,6 +88,11 @@ datadata-skills/
 ├── kilo.json                        # Kilo config (points to AGENTS.md)
 ├── .vscode/settings.json            # Editor settings (Markdown no-wrap, commit style)
 ├── .claude/settings.local.json      # Permissions (python3:*, git *; not committed)
+├── skills/datadata-mcp/             # MCP Server skill (preferred)
+│   ├── SKILL.md
+│   └── references/
+│       ├── query-guide.md
+│       └── data-spaces.md
 ├── skills/datadata-api/             # CLI + REST skill
 │   ├── SKILL.md
 │   ├── agents/openai.yaml
@@ -111,8 +119,10 @@ datadata-skills/
 
 | Command                                                                  | Purpose                            |
 | ------------------------------------------------------------------------ | ---------------------------------- |
-| `npx skills add ./skills/datadata-api --agent claude-code --global`      | 安装 skill 到 Claude Code          |
-| `npx skills add ./skills/datadata-api --agent codex --global`            | 安装 skill 到 Codex                |
+| `npx skills add ./skills/datadata-mcp --agent claude-code --global`      | 安装 MCP skill 到 Claude Code      |
+| `npx skills add ./skills/datadata-mcp --agent codex --global`            | 安装 MCP skill 到 Codex            |
+| `npx skills add ./skills/datadata-api --agent claude-code --global`      | 安装 API skill 到 Claude Code      |
+| `npx skills add ./skills/datadata-api --agent codex --global`            | 安装 API skill 到 Codex            |
 | `python3 skills/datadata-api/scripts/datadata_query.py <subcommand> ...` | 运行 CLI 命令                      |
 | `npx skills add ./skills/datadata-dql --agent claude-code --global`      | 安装 DQL skill 到 Claude Code      |
 | `npx skills add ./skills/datadata-dql --agent codex --global`            | 安装 DQL skill 到 Codex            |
@@ -130,6 +140,7 @@ datadata-skills/
 ## Editing guidance
 
 - Skill docs (`SKILL.md`, `references/`) are the primary artifacts — keep them in sync
+- **datadata-mcp**: MCP tool changes require updating `skills/datadata-mcp/SKILL.md`
 - **datadata-api**: CLI changes require updating both `skills/datadata-api/scripts/datadata_query.py` and `references/cli.md`; API changes require updating `references/api.md`
 - **datadata-dql**: Reference changes must keep `__builtins__.pyi` (source of truth for signatures) and `.md` docs in sync
-- New features should provide `urllib.request` examples (datadata-api) or DQL code samples (datadata-dql), not CLI subprocess calls
+- New features should provide DQL code samples (datadata-dql), not CLI subprocess calls
