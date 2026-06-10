@@ -57,22 +57,28 @@ description: 通过 Datadata MCP Server 管理AI持久化记忆——添加、�
 
 `memory_add` 和 `memory_update` 是**异步操作**。调用后返回 `taskId`，记忆进入索引队列。在索引完成前，新添加的记忆**不会出现在搜索结果中**。
 
-**正确流程**：`add` → `task_wait`（等待索引完成）→ `search`（验证可检索）
+> 绝大多数情况下索引在毫秒级完成，无需显式等待。`memory_task_wait` 仅作为**保险措施**，在以下场景才需要调用：
+>
+> - 添加/更新后**立即**要在同一轮对话中搜索该记忆
+> - 合并压缩/冲突合并后需要验证结果
+>
+> 日常添加/更新操作直接调用 `memory_add` / `memory_update` 即可，不必跟 `memory_task_wait`。
 
 ## 工作流
 
 ### 添加记忆
 
 ```
-用户要求记住某事 → memory_add → memory_task_wait（等待索引）→ 确认完成
+用户要求记住某事 → memory_add → 确认完成
 ```
+
+> 如需立即检索刚添加的记忆，可在 `memory_add` 后调用 `memory_task_wait` 确保索引完成。
 
 **示例**：
 
 ```
 用户："记住我喜欢用中文写 commit message"
 → memory_add(content="用户偏好使用中文编写 Git 提交信息", category="preferences", tags=["git", "commit", "chinese"])
-→ memory_task_wait(taskId=<返回的ID>)
 → 确认："已记住。"
 ```
 
@@ -103,16 +109,16 @@ description: 通过 Datadata MCP Server 管理AI持久化记忆——添加、�
 ### 更新记忆
 
 ```
-用户纠正或补充信息 → memory_update(id=<记忆ID>, content="修正后的内容") → memory_task_wait
+用户纠正或补充信息 → memory_update(id=<记忆ID>, content="修正后的内容") → 确认完成
 ```
+
+> 如需立即检索更新后的记忆，可调用 `memory_task_wait` 确保索引完成。
 
 **何时更新**：
 
 - 用户明确纠正之前的说法："不对，我之前说的..."
 - 信息已过时需要刷新
 - 补充更多细节
-
-**注意**：`memory_update` 同样异步，需要 `task_wait`。
 
 ### 合并压缩
 
@@ -127,7 +133,7 @@ memory_search(新内容摘要) → 发现相似记忆
     ↓
 合并内容（保留所有不重复信息）→ memory_update(已有记忆ID, 合并后内容)
     ↓
-memory_task_wait → 确认合并完成
+（可选）memory_task_wait → 确认合并完成
 ```
 
 **合并原则**：
@@ -162,7 +168,7 @@ memory_search → 发现冲突记忆
     ↓
 memory_update(id, content="最新值", metadata={..., "history": [{"value": "旧值", "updatedAt": "..."}]})
     ↓
-memory_task_wait → 确认
+（可选）memory_task_wait → 确认
 ```
 
 **metadata.history 格式**：
@@ -203,9 +209,9 @@ memory_task_wait → 确认
 
 调用 `memory_add` 前应先 `memory_search` 检查是否已有相似记忆。若存在相关记忆，优先 `memory_update` 更新而非重复添加。
 
-### 🟡 添加/更新后必须等待索引
+### 🟡 仅在需要时等待索引
 
-`memory_add` 和 `memory_update` 返回后，**必须**调用 `memory_task_wait` 等待索引完成，否则后续搜索可能遗漏。
+`memory_add` 和 `memory_update` 的索引通常在毫秒级完成，**无需每次都调用 `memory_task_wait`**。仅当需要在同一轮对话中**立即检索**刚添加/更新的记忆时才调用，作为保险措施。
 
 ### 🟡 记忆内容应原子化
 
@@ -230,7 +236,7 @@ memory_task_wait → 确认
 
 ### Q: 添加记忆后搜索不到？
 
-检查是否调用了 `memory_task_wait` 等待索引完成。异步索引可能需要几秒钟。
+索引通常在毫秒级完成，极少数情况下可能需要几秒。若添加后立即搜索不到，可调用 `memory_task_wait` 等待索引完成后再试。
 
 ### Q: 搜索返回太多结果？
 
