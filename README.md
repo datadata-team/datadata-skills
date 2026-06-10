@@ -32,6 +32,12 @@ CLI-based interaction with Datadata. Requires API Key setup.
 
 See [skills/datadata-api/SKILL.md](./skills/datadata-api/SKILL.md) for detailed usage.
 
+### datadata-memory
+
+Manage AI persistent memories via Datadata MCP Server — add atomic facts, semantic search, update corrections, delete cleanup. Supports merge & compress (auto-dedup similar memories) and conflict merge (keep latest info while preserving change history).
+
+See [skills/datadata-memory/SKILL.md](./skills/datadata-memory/SKILL.md) for detailed usage.
+
 ### datadata-dql
 
 Write DQL (Datadata Query Language) scripts — a Starlark-based scripting language for data transformation, cleaning, generation, and custom processing logic. Supports DataFrame/Series operations, SQL queries, HTTP requests, 2D drawing, and more.

@@ -32,6 +32,12 @@ npx skills add datadata-team/datadata-skills
 
 详细用法见 [skills/datadata-api/SKILL.md](./skills/datadata-api/SKILL.md)。
 
+### datadata-memory
+
+通过 Datadata MCP Server 管理 AI 持久化记忆 — 添加原子事实、语义搜索、更新纠正、删除清理，支持合并压缩（相似记忆自动去重合并）和冲突合并（信息冲突时保留最新并记录历史变更）。
+
+详细用法见 [skills/datadata-memory/SKILL.md](./skills/datadata-memory/SKILL.md)。
+
 ### datadata-dql
 
 编写 DQL（Datadata Query Language）数据处理脚本 — 基于 Starlark 的扩展脚本语言，支持 DataFrame/Series 操作、SQL 查询、HTTP 请求、2D 绘图等，适用于数据转换、清洗、生成等自定义数据处理场景。

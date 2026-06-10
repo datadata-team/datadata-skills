@@ -2,19 +2,20 @@
 
 ## What this repo is
 
-Skills repository for the Datadata analytics platform. Three skills:
+Skills repository for the Datadata analytics platform. Four skills:
 
-| Skill               | Capabilities                                                                                                                 | Instructions                             |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| **`datadata-mcp/`** | 通过 MCP Server 进行数据查询与管理 — 搜索、元信息、SQL、Data Spaces 全流程。**有 MCP connector 时优先使用。**                | [SKILL.md](skills/datadata-mcp/SKILL.md) |
-| **`datadata-api/`** | 通过 CLI 查询数据 (SQL queries, metadata inspection, result download) · 录入数据 (Data-space table management on `ducklake`) | [SKILL.md](skills/datadata-api/SKILL.md) |
-| **`datadata-dql/`** | DQL (Starlark) 脚本编写 — 数据转换、DataFrame/Series 操作、SQL 查询、HTTP 请求、2D 绘图                                      | [SKILL.md](skills/datadata-dql/SKILL.md) |
+| Skill                  | Capabilities                                                                                                                 | Instructions                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **`datadata-mcp/`**    | 通过 MCP Server 进行数据查询与管理 — 搜索、元信息、SQL、Data Spaces 全流程。**有 MCP connector 时优先使用。**                | [SKILL.md](skills/datadata-mcp/SKILL.md)    |
+| **`datadata-api/`**    | 通过 CLI 查询数据 (SQL queries, metadata inspection, result download) · 录入数据 (Data-space table management on `ducklake`) | [SKILL.md](skills/datadata-api/SKILL.md)    |
+| **`datadata-dql/`**    | DQL (Starlark) 脚本编写 — 数据转换、DataFrame/Series 操作、SQL 查询、HTTP 请求、2D 绘图                                      | [SKILL.md](skills/datadata-dql/SKILL.md)    |
+| **`datadata-memory/`** | AI 持久化记忆管理 — 添加、搜索、更新、删除记忆，支持语义搜索和多维度过滤                                                     | [SKILL.md](skills/datadata-memory/SKILL.md) |
 
 ## Critical agent rules (must-follow)
 
 > **🔴 MCP 优先原则**：当 `datadata-mcp` connector 可用时，交互式操作优先使用 MCP。需要生成独立 Python 脚本（爬虫/ETL）时使用 `datadata-api`。
 >
-> 以下规则大部分适用于 `datadata-api`。`datadata-mcp` 和 `datadata-dql` 的规则见各自的 SKILL.md。
+> 以下规则大部分适用于 `datadata-api`。`datadata-mcp`、`datadata-dql` 和 `datadata-memory` 的规则见各自的 SKILL.md。
 
 ### 🔐 Authentication（datadata-api）
 
@@ -100,6 +101,11 @@ datadata-skills/
 │   │   ├── api.md, cli.md, query-guide.md, data-spaces.md
 │   └── scripts/
 │       └── datadata_query.py
+├── skills/datadata-memory/           # Persistent memory management skill
+│   ├── SKILL.md
+│   ├── agents/openai.yaml
+│   └── references/
+│       └── memory-guide.md
 └── skills/datadata-dql/             # DQL (Starlark) scripting skill
     ├── SKILL.md
     └── references/
@@ -124,6 +130,8 @@ datadata-skills/
 | `npx skills add ./skills/datadata-api --agent claude-code --global`      | 安装 API skill 到 Claude Code      |
 | `npx skills add ./skills/datadata-api --agent codex --global`            | 安装 API skill 到 Codex            |
 | `python3 skills/datadata-api/scripts/datadata_query.py <subcommand> ...` | 运行 CLI 命令                      |
+| `npx skills add ./skills/datadata-memory --agent claude-code --global`   | 安装 Memory skill 到 Claude Code   |
+| `npx skills add ./skills/datadata-memory --agent codex --global`         | 安装 Memory skill 到 Codex         |
 | `npx skills add ./skills/datadata-dql --agent claude-code --global`      | 安装 DQL skill 到 Claude Code      |
 | `npx skills add ./skills/datadata-dql --agent codex --global`            | 安装 DQL skill 到 Codex            |
 | `export DATADATA_API_KEY="ak_..."`                                       | Set API key manually               |

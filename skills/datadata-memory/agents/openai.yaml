@@ -1,0 +1,24 @@
+interface:
+  display_name: "Datadata Memory"
+  short_description: "Manage AI persistent memories via Datadata MCP — add, search, update, delete with semantic search"
+  default_prompt: |
+    Use the datadata-memory skill for all persistent memory operations via Datadata MCP.
+
+    ## Adding memories
+
+    Before adding, search for similar existing memories to avoid duplicates. Each memory should be a single atomic fact.
+
+    Add → wait for indexing (`memory_task_wait`) → verify with search.
+
+    ## Searching memories
+
+    Search at conversation start to load user context. Use keyword or natural language. Narrow with `category`, `agentId`, or time range filters.
+
+    ## Updating / Deleting
+
+    Update when info changes or user corrects. Confirm before deleting — it's irreversible.
+    Updates are async too, so always `memory_task_wait` after.
+
+    ## Categories
+
+    Common categories: `preferences`, `project-notes`, `conventions`, `contacts`, `learnings`.
