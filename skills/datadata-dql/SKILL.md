@@ -1,6 +1,6 @@
 ---
 name: datadata-dql
-description: 为 Datadata 平台编写 DQL 数据处理脚本 — 基于 Starlark 的扩展脚本语言，支持 DataFrame/Series 操作、SQL 查询、HTTP 请求等。当用户需要编写数据转换、数据清洗、数据生成或自定义数据处理逻辑时使用此 skill。
+description: Write DQL data processing scripts for the Datadata platform — a Starlark-based extended scripting language supporting DataFrame/Series operations, SQL queries, HTTP requests, and more. Use when the user needs to write data transformation, data cleaning, data generation, or custom data processing logic.
 ---
 
 # Datadata Query Language (DQL) 脚本编写

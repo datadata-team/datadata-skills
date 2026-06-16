@@ -1,6 +1,6 @@
 ---
 name: datadata-mcp
-description: 通过 Datadata MCP Server 进行数据查询与管理——搜索数据源、探索表结构、执行 SQL、管理 Data Spaces 表。当用户提到 Datadata、想查询数据、探索数据源或表 schema、获取查询结果、创建/写入/删除 Data Spaces 表时使用此 skill。触发：Datadata、数据探索、SQL查询、表检查、执行结果、数据分析、建表、写入数据。
+description: Query and manage data via the Datadata MCP Server — search datasources, explore table schemas, execute SQL, and manage Data Spaces tables. Use when the user mentions Datadata, wants to query data, explore datasources or table schemas, retrieve query results, or create/write/delete Data Spaces tables. Triggers: Datadata, data exploration, SQL query, table inspection, execution results, data analysis, create table, write data.
 ---
 
 ## 功能概览

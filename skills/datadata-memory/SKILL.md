@@ -1,6 +1,6 @@
 ---
 name: datadata-memory
-description: 通过 Datadata MCP Server 管理AI持久化记忆——添加、搜索、更新、删除记忆，支持语义搜索和多维度过滤。当用户想让AI记住某些信息、回忆之前的对话内容、管理持久化知识时使用此skill。触发：记住、记忆、回忆、别忘了、帮我记下、之前说过、搜索记忆、删除记忆。
+description: Manage AI persistent memory via the Datadata MCP Server — add, search, update, and delete memories, with semantic search and multi-dimensional filtering. Use when the user wants the AI to remember information, recall previous conversations, or manage persistent knowledge. Triggers: remember, memory, recall, don't forget, note this down, previously mentioned, search memory, delete memory.
 ---
 
 ## 功能概览
