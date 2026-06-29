@@ -1,6 +1,6 @@
 ---
 name: datadata-memory
-description: Manage AI persistent memory via the Datadata MCP Server — add, search, update, and delete memories, with semantic search and multi-dimensional filtering. Use when the user wants the AI to remember information, recall previous conversations, or manage persistent knowledge. Triggers: remember, memory, recall, don't forget, note this down, previously mentioned, search memory, delete memory.
+description: "Manage AI persistent memory via the Datadata MCP Server — add, search, update, and delete memories, with semantic search and multi-dimensional filtering. Use when the user wants the AI to remember information, recall previous conversations, or manage persistent knowledge. Triggers: remember, memory, recall, don't forget, note this down, previously mentioned, search memory, delete memory."
 ---
 
 ## 功能概览
