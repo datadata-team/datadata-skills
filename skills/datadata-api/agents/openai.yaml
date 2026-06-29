@@ -1,25 +1,25 @@
 interface:
   display_name: "Datadata API"
-  short_description: "Query and explore datasources, manage data-space tables via CLI or direct REST API"
+  short_description: "Datadata REST API reference — endpoint docs and urllib.request examples for script generation and API integration"
   default_prompt: |
-    Use the datadata-api skill for all Datadata operations.
+    Use the datadata-api skill for Datadata REST API reference and script generation. Primary use case: generating standalone Python scripts (crawlers, ETL, batch processing). But the API docs are general-purpose — reference them whenever the user asks about Datadata API endpoints.
 
-    ## Query data
+    For interactive operations (chat-based queries, data exploration, Data Spaces management, scheduled tasks), use datadata-mcp instead.
 
-    Before writing SQL, inspect the datasource schema with list-tables and describe-table. Use DuckDB SQL by default; switch to ClickHouse SQL only for ClickHouse datasources. Bind datasources with `--datasource "ID:alias"` (repeatable) and reference them in SQL by alias. For ducklake datasources, the alias is ignored — always use `ducklake.{datasourceName}.{tableName}` instead.
+    ## Script generation
 
-    Queries are read-only via `execute-adhoc`. Never use it for INSERT, UPDATE, DELETE, or DDL. Results are async — fetch with `get-execution-result`, never dump full datasets into context.
+    All scripts must use only Python standard library (urllib.request, json, os). Never use requests, pandas, or other third-party libraries. Use the _request() template from SKILL.md.
 
-    For generated scripts, prefer direct REST API calls using `urllib.request` over CLI subprocess.
+    Before writing SQL in generated scripts, document the datasource schema requirements. Use DuckDB SQL by default; switch to ClickHouse SQL only for ClickHouse datasources. Bind datasources via the `datasources` array in the execute-adhoc payload.
 
-    ## Data entry
+    Queries are read-only via execute-adhoc. Never generate INSERT/UPDATE/DELETE/DDL in SQL — use Data Spaces endpoints (create-table, insert-rows, drop-table) for writes.
 
-    For ducklake data-spaces, use `create-table`, `insert-rows` (batch), `describe-data-space-table`, and `drop-table`. Creating/dropping tables auto-triggers schema scans.
+    For ducklake datasources, always use `ducklake.{datasourceName}.{tableName}` — ignore the attachAlias.
 
-    ## Auth & health
+    ## API Key
 
-    Use `whoami` to verify API key validity, inspect permissions, or fetch current user info.
+    Scripts should read DATADATA_API_KEY from environment variable. Fall back to prompting the user or using device flow for unattended scripts.
 
     ## Conventions
 
-    API key starts with `ak_`. `--base-url` and `--api-key` must precede the subcommand. On 404, check resource ID first; if multiple endpoints fail, verify `DATADATA_BASE_URL`. Retry 5xx once after 3 seconds.
+    API key starts with `ak_`. Report execution IDs for async query results. For large datasets, save to file rather than printing.

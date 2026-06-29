@@ -28,7 +28,7 @@ ducklake.{datasourceName}.{tableName}
 
 通过 `get-datasource-info` 获得 datasource 名，在 SQL 和 `datasources` 绑定中使用。
 
-> **Data Spaces 表管理**（创建表、插入数据、删除表）需要通过 `datadata-api` skill 的 CLI 完成。如果你需要数据写入能力，请安装 `datadata-api` skill。
+> **Data Spaces 表管理**（创建表、插入数据、删除表）已通过 MCP 完整覆盖，使用 `create-table`、`insert-rows`、`drop-table` 工具即可。
 
 ### 数据库数据源（MySQL、PostgreSQL、DuckDB、SQLite、ClickHouse 等）
 
@@ -70,7 +70,7 @@ SELECT id, name, status FROM sales WHERE order = 'abc'
 ## 安全性
 
 - `execute-adhoc` 是**只读的**。不要用它执行 INSERT、UPDATE、DELETE、DROP、ALTER 或任何修改数据的 SQL
-- 仅 Data Spaces 的 `insert-rows` 可以插入数据 — 需要通过 `datadata-api` skill 的 CLI 操作
+- 仅 Data Spaces 的 `insert-rows` MCP 工具可以插入数据
 - 未明确要求时不要运行破坏性 SQL
 - 不要默默改写业务逻辑 SQL
 

@@ -1,29 +1,49 @@
 ---
 name: datadata-mcp
-description: Query and manage data via the Datadata MCP Server — search datasources, explore table schemas, execute SQL, and manage Data Spaces tables. Use when the user mentions Datadata, wants to query data, explore datasources or table schemas, retrieve query results, or create/write/delete Data Spaces tables. Triggers: Datadata, data exploration, SQL query, table inspection, execution results, data analysis, create table, write data.
+description: "通过 Datadata MCP Server 进行数据查询与管理 — 搜索数据源、探索表结构、执行 SQL、管理 Data Spaces 表。交互式操作的首选方式，覆盖 Datadata 平台全部日常功能。当用户想在聊天中查询数据、探索数据源、管理 Data Spaces、执行定时任务时使用。触发：Datadata、数据探索、SQL 查询、查数据、表结构、建表、写入数据。"
 ---
 
 ## 功能概览
 
-本 skill 通过 **Datadata MCP Server** 直接调用平台能力，无需 CLI 脚本或手动管理 API Key。当前覆盖查询数据全流程：
+本 skill 通过 **Datadata MCP Server** 直接调用平台能力，是 Datadata 平台**交互式操作的首选方式**。
+涵盖查询数据、管理 Data Spaces、设置注释、触发扫描等全流程。
+
+> **生成独立 Python 脚本（爬虫/ETL/批处理）请使用 `datadata-api` skill。** MCP 专为聊天交互设计，不适用于生成独立运行的脚本文件。
+
+### MCP Server 配置
+
+```
+URL: https://www.datadata.com/api/mcp/v1
+```
+
+安装本 skill 时会自动配置 MCP Server 连接，无需手动设置。安装命令：
+
+```bash
+npx skills add ./skills/datadata-mcp --agent claude-code --global   # Claude Code
+npx skills add ./skills/datadata-mcp --agent codex --global         # Codex
+```
+
+### 当前覆盖能力
 
 - **搜索数据源** — 支持用户名/关键词搜索公开和私有数据源
 - **元数据查询** — 检查数据源信息、列出表、描述列结构
 - **元数据增强** — 设置表注释和列注释，提升数据可理解性
 - **Data Spaces 建表** — 创建表结构，支持 INTEGER、VARCHAR、DOUBLE 等类型
 - **Data Spaces 写入** — 批量插入数据行
+- **Data Spaces 删除** — 删除表
 - **Schema 扫描** — 触发异步扫描，刷新数据源表元数据
 - **执行 SQL 查询** — 通过 `execute-adhoc` 执行 SELECT 查询，返回执行 ID 和结果下载链接
 - **DQL 脚本执行** — 支持 DQL（Starlark）脚本类型
 
 ### 与其他 skill 的分工
 
-本 skill 覆盖 Datadata 平台日常交互操作。以下场景使用其他 skill：
-
-| 场景                                | 使用 skill                                  |
-| ----------------------------------- | ------------------------------------------- |
-| 生成 Python 脚本（爬虫/ETL/批处理） | `datadata-api` — 提供 `urllib.request` 示例 |
-| DQL（Starlark）数据处理脚本         | `datadata-dql`                              |
+| 场景                                         | 使用 skill                                  |
+| -------------------------------------------- | ------------------------------------------- |
+| 聊天中交互式查询、探索、管理（即时操作）     | **`datadata-mcp`**（本 skill）              |
+| 定时任务、数据管道等自动化（仍在聊天中触发） | **`datadata-mcp`**（本 skill）              |
+| 生成独立 Python 脚本（爬虫/ETL/批处理）      | `datadata-api` — 提供 `urllib.request` 示例 |
+| DQL（Starlark）数据处理脚本                  | `datadata-dql`                              |
+| AI 持久化记忆管理                            | `datadata-memory`                           |
 
 ## 使用场景
 
@@ -34,11 +54,13 @@ description: Query and manage data via the Datadata MCP Server — search dataso
 | 探索数据源结构         | "看看这个 datasource 有哪些表"、"描述一下 customers 表的字段" |
 | 设置表和列的注释       | "给 users 表加个注释"、"把 email 列的注释设为'用户邮箱'"      |
 | 跨数据源关联分析       | "把 MySQL 的订单表和 CSV 的用户信息 join 一下"                |
+| Data Spaces 数据写入   | "把爬虫结果存到 data space 里"、"批量插入这些数据"            |
 | 获取查询结果           | "下载上次查询的结果"                                          |
+| 定时任务               | "每天早上 8 点帮我查一下销售数据"                             |
 
 ## MCP 工具速查
 
-以下工具由 Datadata MCP Server 提供，Agent 直接调用即可，无需任何 CLI 命令：
+以下工具由 Datadata MCP Server（`https://www.datadata.com/api/mcp/v1`）提供，Agent 直接调用即可：
 
 | 工具                        | 用途                         | 关键参数                                                                                                           |
 | --------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |

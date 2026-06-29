@@ -10,9 +10,9 @@
 
 ## 数据源绑定
 
-- 格式：`--datasource "DATASOURCE_ID:ATTACH_ALIAS"`，可重复使用
+- 在 `execute-adhoc` 请求体中通过 `datasources` 数组绑定：`[{"datasourceId": "ID", "attachAlias": "ALIAS"}]`，可绑定多个
 - SQL 中通过别名而非 datasource ID 引用表
-- **例外**：`ducklake` 类型数据源忽略别名 — 始终使用 datasource 自身的 `name` 作为 schema。通过 `get-datasource-info` 获取。
+- **例外**：`ducklake` 类型数据源忽略别名 — 始终使用 datasource 自身的 `name` 作为 schema。通过 `GET /datasources/{id}/info` 获取。
 
 ## 表命名
 
@@ -26,7 +26,7 @@ Datadata 管理的基于 DuckDB 的 data-spaces。catalog 名固定为 `ducklake
 ducklake.{datasourceName}.{tableName}
 ```
 
-通过 `get-datasource-info` 获得 datasource 名，在 SQL 和 `--datasource "ID:NAME"` 绑定中使用。表管理操作详见 [data-spaces.md](./data-spaces.md)。
+通过 `GET /datasources/{id}/info` 获得 datasource 名，在 SQL 和 `datasources` 绑定中使用。表管理操作详见 [data-spaces.md](./data-spaces.md)。
 
 ### 数据库数据源（MySQL、PostgreSQL、DuckDB、SQLite、ClickHouse 等）
 
@@ -68,13 +68,13 @@ SELECT id, name, status FROM sales WHERE order = 'abc'
 ## 安全性
 
 - `execute-adhoc` 是**只读的**。不要用它执行 INSERT、UPDATE、DELETE、DROP、ALTER 或任何修改数据的 SQL
-- 仅 `insert-rows` API / 子命令可以插入数据 — 支持**批量插入**
+- 仅 `insert-rows` API 端点可以插入数据 — 支持**批量插入**
 - 未明确要求时不要运行破坏性 SQL
 - 不要默默改写业务逻辑 SQL
 
 ## 结果处理
 
-`execute-adhoc` 执行后通过 `get-execution-result` 获取结果：
+`execute-adhoc` 执行后通过 `GET /executions/{id}/result` 获取结果：
 
 - 不要将完整的大数据集发送到 model context — 保存到文件，本地搜索，总结摘要
 - 报告文件路径、格式和 execution ID 以便重用
