@@ -1,6 +1,10 @@
 ---
 name: datadata-api
-description: "Datadata REST API 参考文档 — 提供完整的 API 端点说明和 urllib.request（零额外依赖）调用示例。首要用例是生成爬虫、ETL、批处理脚本，同时适用于所有需要直接调用 Datadata API 的场景。涵盖数据源查询、SQL 执行、结果下载、Data Spaces 表管理全流程。"
+description: |
+  本技能提供对 Datadata 平台 Rest API 的完整参考文档，在使用 Datadata Rest API 之前，必须先加载本技能。
+  本技能提供完整的 API 端点说明和 urllib.request（零额外依赖）调用示例。
+  首要用例是生成爬虫、ETL、批处理脚本，同时适用于所有需要直接调用 Datadata API 的场景。
+  涵盖数据源查询、SQL 执行、结果下载、Data Spaces 表管理全流程。
 ---
 
 ## 功能概览

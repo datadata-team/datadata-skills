@@ -1,6 +1,6 @@
 ---
 name: datadata-mcp
-description: "通过 Datadata MCP Server 进行数据查询与管理 — 搜索数据源、探索表结构、执行 SQL、管理 Data Spaces 表。交互式操作的首选方式，覆盖 Datadata 平台全部日常功能。当用户想在聊天中查询数据、探索数据源、管理 Data Spaces、执行定时任务时使用。触发：Datadata、数据探索、SQL 查询、查数据、表结构、建表、写入数据。"
+description: 本技能包含对 Datadata MCP Server 提供的所有功能的解释，当调用 datadata mcp server 的任何功能之前，必须先加载本技能。
 ---
 
 ## 功能概览
