@@ -1,6 +1,9 @@
 ---
 name: datadata-memory
-description: "Manage AI persistent memory via the Datadata MCP Server — add, search, update, and delete memories, with semantic search and multi-dimensional filtering. Use when the user wants the AI to remember information, recall previous conversations, or manage persistent knowledge. Triggers: remember, memory, recall, don't forget, note this down, previously mentioned, search memory, delete memory."
+description: |
+  Manage AI persistent memory via the Datadata MCP Server — add, search, update, and delete memories, with semantic search and multi-dimensional filtering.
+  Use when the user wants the AI to remember information, recall previous conversations, or manage persistent knowledge.
+  Triggers: remember, memory, recall, don't forget, note this down, previously mentioned, search memory, delete memory.
 ---
 
 ## 功能概览
@@ -13,15 +16,6 @@ description: "Manage AI persistent memory via the Datadata MCP Server — add, s
 - **合并压缩** — 检测相似记忆并合并为一条，消除冗余
 - **冲突合并** — 发现信息冲突时保留最新、记录历史
 - **删除记忆** — 按 ID 移除过时或错误的记忆
-
-### 与其他 skill 的分工
-
-| 场景                         | 使用 skill                    |
-| ---------------------------- | ----------------------------- |
-| 查询数据源、执行 SQL         | `datadata-mcp`                |
-| 生成 Python 脚本（爬虫/ETL） | `datadata-api`                |
-| DQL 数据处理脚本             | `datadata-dql`                |
-| AI 持久化记忆管理            | `datadata-memory`（本 skill） |
 
 ## MCP 工具速查
 

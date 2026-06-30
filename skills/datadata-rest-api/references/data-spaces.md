@@ -2,8 +2,6 @@
 
 Data Spaces 是 Datadata 中 `ducklake` 类型 datasource 独有的表管理能力，支持用户创建、写入和删除表。
 
-> **交互式操作请使用 `datadata-mcp` skill。** 本文档面向生成独立 Python 脚本的场景。
-
 ## 概述
 
 - **Data space** — 特殊的 `ducklake` 类型数据源，支持用户创建表和插入数据

@@ -1,10 +1,13 @@
 ---
-name: datadata-api
+name: datadata-rest-api
 description: |
-  本技能提供对 Datadata 平台 Rest API 的完整参考文档，在使用 Datadata Rest API 之前，必须先加载本技能。
+  本技能提供对 Datadata 平台 Rest API 的完整参考文档，在使用 Datadata Rest API 之前，**必须先加载本技能**。
   本技能提供完整的 API 端点说明和 urllib.request（零额外依赖）调用示例。
   首要用例是生成爬虫、ETL、批处理脚本，同时适用于所有需要直接调用 Datadata API 的场景。
   涵盖数据源查询、SQL 执行、结果下载、Data Spaces 表管理全流程。
+  使用场景：
+  1. 生成独立 Python 脚本（爬虫、ETL、批处理）
+  2. 生成定时任务脚本，比如每天定时爬去最新金融数据，并写入 Data Space 数据空间。
 ---
 
 ## 功能概览
@@ -13,7 +16,7 @@ description: |
 
 **首要用例**是生成独立 Python 脚本（爬虫、ETL、批处理），但 API 文档本身是通用的 — 任何需要直接调用 Datadata API 的场景均可参考。
 
-> **交互式操作（聊天中执行查询、探索数据等）请使用 `datadata-mcp` skill。** MCP 已完整覆盖搜索、查询、Data Spaces 等日常交互功能。
+> **交互式操作（聊天中执行查询、探索数据等）请使用 `datadata-manual` skill。** MCP 已完整覆盖搜索、查询、Data Spaces 等日常交互功能。
 
 ### 核心能力
 
@@ -34,7 +37,7 @@ description: |
 | 查阅 API 文档     | "Datadata 的 execute-adhoc 接口怎么调？"       |
 | Datadata API 集成 | "给我一个 Python 示例调用 Datadata API 查数据" |
 
-> 以下场景请使用 **`datadata-mcp`** skill：
+> 以下场景请使用 **`datadata-manual`** skill：
 >
 > - 聊天中交互式查询数据（"帮我查一下销售数据"）
 > - 探索数据源结构（"看看这个 datasource 有哪些表"）
@@ -134,5 +137,4 @@ Agent 只执行用户**明确要求**的操作。生成脚本后立即停止，�
 
 ### 相关 skill
 
-- **`datadata-mcp`** — 交互式操作首选（聊天中查询、探索、Data Spaces 管理等）
 - **`datadata-dql`** — DQL（Starlark）数据处理脚本编写

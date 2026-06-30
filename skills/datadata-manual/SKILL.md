@@ -1,29 +1,21 @@
 ---
-name: datadata-mcp
-description: 本技能包含对 Datadata MCP Server 提供的所有功能的解释，当调用 datadata mcp server 的任何功能之前，必须先加载本技能。
+name: datadata-manual
+description: |
+  本技能包含对 Datadata 平台的详细操作手册，在使用 Datadata 平台相关功能时，**必须先加载本技能**。
+  Datadata 平台功能包括:
+  1. 数据源管理 - 搜索、查询、元数据增强
+  2. 执行 Query 查询 - 对数据源执行 DQL、DQL 查询，并获取结果
+  3. Data Spaces 数据空间管理 - 建表、写入数据、删除表
 ---
 
 ## 功能概览
 
-本 skill 通过 **Datadata MCP Server** 直接调用平台能力，是 Datadata 平台**交互式操作的首选方式**。
-涵盖查询数据、管理 Data Spaces、设置注释、触发扫描等全流程。
+本 skill 通过 **Datadata MCP Server** 直接调用平台能力，在使用之前，请先确认已经连接 Datadata MCP Server。
 
-> **生成独立 Python 脚本（爬虫/ETL/批处理）请使用 `datadata-api` skill。** MCP 专为聊天交互设计，不适用于生成独立运行的脚本文件。
+> **生成独立 Python 脚本（爬虫/ETL/批处理）请使用 `datadata-rest-api` skill。**
+> MCP 专为聊天交互设计，不适用于生成独立运行的脚本文件。
 
-### MCP Server 配置
-
-```
-URL: https://www.datadata.com/api/mcp/v1
-```
-
-安装本 skill 时会自动配置 MCP Server 连接，无需手动设置。安装命令：
-
-```bash
-npx skills add ./skills/datadata-mcp --agent claude-code --global   # Claude Code
-npx skills add ./skills/datadata-mcp --agent codex --global         # Codex
-```
-
-### 当前覆盖能力
+### 覆盖能力
 
 - **搜索数据源** — 支持用户名/关键词搜索公开和私有数据源
 - **元数据查询** — 检查数据源信息、列出表、描述列结构
@@ -34,16 +26,6 @@ npx skills add ./skills/datadata-mcp --agent codex --global         # Codex
 - **Schema 扫描** — 触发异步扫描，刷新数据源表元数据
 - **执行 SQL 查询** — 通过 `execute-adhoc` 执行 SELECT 查询，返回执行 ID 和结果下载链接
 - **DQL 脚本执行** — 支持 DQL（Starlark）脚本类型
-
-### 与其他 skill 的分工
-
-| 场景                                         | 使用 skill                                  |
-| -------------------------------------------- | ------------------------------------------- |
-| 聊天中交互式查询、探索、管理（即时操作）     | **`datadata-mcp`**（本 skill）              |
-| 定时任务、数据管道等自动化（仍在聊天中触发） | **`datadata-mcp`**（本 skill）              |
-| 生成独立 Python 脚本（爬虫/ETL/批处理）      | `datadata-api` — 提供 `urllib.request` 示例 |
-| DQL（Starlark）数据处理脚本                  | `datadata-dql`                              |
-| AI 持久化记忆管理                            | `datadata-memory`                           |
 
 ## 使用场景
 
@@ -87,7 +69,7 @@ npx skills add ./skills/datadata-mcp --agent codex --global         # Codex
 ### 基础查询流程
 
 ```
-搜索数据源 → 确认 → 获取元信息 → （可选）列出表/描述列 → 执行查询 → 下载结果
+搜索数据源 → 用户确认 → 获取元信息 → （可选）列出表/描述列 → 生成查询脚本 → 执行查询 → 下载结果
 ```
 
 每一步完成后**立即停止**，等待用户明确指令后再进行下一步。详见下方 [规则](#规则) 章节。
@@ -98,7 +80,9 @@ npx skills add ./skills/datadata-mcp --agent codex --global         # Codex
 
 ### DQL 脚本
 
-如需编写 DQL（Starlark）数据处理脚本，请安装 `datadata-dql` skill。`execute-adhoc` 的 `scriptType` 设为 `dql` 即可在 MCP 中执行 DQL 脚本，但脚本编写规范和 API 参考以 `datadata-dql` skill 为准。
+如需编写 DQL（Starlark）数据处理脚本，请安装 `datadata-dql` skill。
+`execute-adhoc` 的 `scriptType` 设为 `dql` 即可在 MCP 中执行 DQL 脚本，
+脚本编写规范和 API 参考以 `datadata-dql` skill 为准。
 
 ## 规则
 
