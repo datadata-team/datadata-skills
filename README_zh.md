@@ -16,21 +16,21 @@ npx skills add datadata-team/datadata-skills
 
 ## Skills
 
-### datadata-mcp（推荐）
+### datadata-manual（推荐）
 
-通过 MCP（Model Context Protocol）与 Datadata 平台交互 — **无需 API Key**，通过 OAuth 自动认证。
+Datadata 平台操作手册 — 通过 MCP Server 交互式操作数据，**无需 API Key**，OAuth 自动认证。
 
-**查询数据** — 搜索数据源、查看元数据、列出表、描述列结构、执行 SQL 查询（DuckDB / ClickHouse，支持跨源 join）、设置表/列注释。
+**查询数据** — 搜索数据源、查看元数据、列出表、描述列结构、执行 SQL 查询（DuckDB / ClickHouse，支持跨源 join）、设置表/列注释、执行 DQL 脚本。
 
-**管理 Data Spaces** — 创建表、批量插入数据、查看表结构、删除 ducklake 表。
+**管理 Data Spaces** — 创建表、批量插入数据、查看表结构、删除表。
 
-详细用法见 [skills/datadata-mcp/SKILL.md](./skills/datadata-mcp/SKILL.md)。
+详细用法见 [skills/datadata-manual/SKILL.md](./skills/datadata-manual/SKILL.md)。
 
-### datadata-api
+### datadata-rest-api
 
-基于 CLI 与 Datadata 平台交互。需要配置 API Key。
+Datadata REST API 完整参考文档 — 提供所有端点说明和 `urllib.request`（零额外依赖）调用示例。首要用例是生成爬虫、ETL、批处理等独立 Python 脚本。需要配置 API Key。
 
-详细用法见 [skills/datadata-api/SKILL.md](./skills/datadata-api/SKILL.md)。
+详细用法见 [skills/datadata-rest-api/SKILL.md](./skills/datadata-rest-api/SKILL.md)。
 
 ### datadata-memory
 
@@ -46,9 +46,9 @@ npx skills add datadata-team/datadata-skills
 
 ### 认证方式
 
-**datadata-mcp（推荐）**：使用 OAuth 认证，登录一次即可，无需 API Key。
+**datadata-manual（推荐）**：使用 OAuth 认证，登录一次即可，无需 API Key。
 
-**datadata-api**：支持两种认证方式：
+**datadata-rest-api**：支持两种认证方式：
 
 #### 自动授权（推荐）
 

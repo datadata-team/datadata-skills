@@ -140,7 +140,9 @@ SQL 编写前必须先通过 `get-datasource-info` 了解数据源类型，不�
 
 ### Q: MCP server 连不上怎么办？
 
-检查 MCP server 状态或重启您的Agent。
+Datadata MCP Server **首选 OAuth 自动授权**（无需手动申请 Key）。
+如当前 Agent 不支持 OAuth，可参考 [API Key 申请指南](./references/api-key-setup.md) 通过 Device Flow 自动申请。
+如已配置 Key 则检查 MCP server 状态或重启 Agent。
 
 ### Q: 查询返回了大量数据怎么办？
 
@@ -152,14 +154,15 @@ MCP 已完整支持 Data Spaces：`create-table` 建表 → `insert-rows` 写入
 
 ## References
 
-| 文档                                                       | 说明                                           |
-| ---------------------------------------------------------- | ---------------------------------------------- |
-| [./references/query-guide.md](./references/query-guide.md) | 查询引擎、表命名、标识符引用、安全性等完整规范 |
-| [./references/data-spaces.md](./references/data-spaces.md) | Data Spaces 表管理完整说明                     |
+| 文档                                                           | 说明                                           |
+| -------------------------------------------------------------- | ---------------------------------------------- |
+| [./references/query-guide.md](./references/query-guide.md)     | 查询引擎、表命名、标识符引用、安全性等完整规范 |
+| [./references/data-spaces.md](./references/data-spaces.md)     | Data Spaces 表管理完整说明                     |
+| [./references/api-key-setup.md](./references/api-key-setup.md) | API Key Device Flow 自动申请指南               |
 
 ### 相关 skill（可选安装）
 
 本 skill 可独立使用，以下 skill 提供互补能力：
 
-- **`datadata-api`** — 生成独立 Python 脚本（爬虫/ETL/批处理），含 REST API 参考
+- **`datadata-rest-api`** — 生成独立 Python 脚本（爬虫/ETL/批处理），含 REST API 参考
 - **`datadata-dql`** — DQL（Starlark）脚本编写，含 DataFrame/Series API 参考

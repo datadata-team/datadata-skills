@@ -16,21 +16,21 @@ npx skills add datadata-team/datadata-skills
 
 ## Skills
 
-### datadata-mcp (recommended)
+### datadata-manual (recommended)
 
-Interact with Datadata through MCP (Model Context Protocol) — **no API Key required**, authentication handled via OAuth.
+Datadata platform operations manual — interact with data through MCP Server, **no API Key required**, OAuth authentication.
 
-**Query data** — Search datasources, inspect metadata, list tables, describe column schemas, run SQL queries (DuckDB / ClickHouse, cross-source joins), set table/column comments.
+**Query data** — Search datasources, inspect metadata, list tables, describe column schemas, run SQL queries (DuckDB / ClickHouse, cross-source joins), set table/column comments, execute DQL scripts.
 
-**Manage Data Spaces** — Create tables, batch-insert rows, describe table structures, drop tables on ducklake datasources.
+**Manage Data Spaces** — Create tables, batch-insert rows, describe table structures, drop tables.
 
-See [skills/datadata-mcp/SKILL.md](./skills/datadata-mcp/SKILL.md) for detailed usage.
+See [skills/datadata-manual/SKILL.md](./skills/datadata-manual/SKILL.md) for detailed usage.
 
-### datadata-api
+### datadata-rest-api
 
-CLI-based interaction with Datadata. Requires API Key setup.
+Datadata REST API complete reference — all endpoint documentation with `urllib.request` (zero-dependency) usage examples. Primary use case: generating standalone Python scripts (crawlers, ETL, batch processing). Requires API Key.
 
-See [skills/datadata-api/SKILL.md](./skills/datadata-api/SKILL.md) for detailed usage.
+See [skills/datadata-rest-api/SKILL.md](./skills/datadata-rest-api/SKILL.md) for detailed usage.
 
 ### datadata-memory
 
@@ -46,9 +46,9 @@ See [skills/datadata-dql/SKILL.md](./skills/datadata-dql/SKILL.md) for detailed 
 
 ### Authentication
 
-**datadata-mcp (recommended)**: Uses OAuth — sign in once, no API Key needed.
+**datadata-manual (recommended)**: Uses OAuth — sign in once, no API Key needed.
 
-**datadata-api**: Two ways to authenticate:
+**datadata-rest-api**: Two ways to authenticate:
 
 #### Automatic (recommended)
 
