@@ -42,9 +42,7 @@ def _request(url, method="GET", payload=None):
 | Search      | GET  | `/api/search-engine/indexes/datasource/search`      | 无                      |
 | Execution   | POST | `/api/v1/queries/execute-adhoc`                     | `queries:execute-adhoc` |
 | Execution   | GET  | `/api/v1/executions/{id}/result`                    | `executions:get`        |
-| Data Spaces | POST | `/api/v1/data-spaces/{id}/create-table`             | `data-spaces:write`     |
-| Data Spaces | POST | `/api/v1/data-spaces/{id}/describe-table`           | `data-spaces:write`     |
-| Data Spaces | POST | `/api/v1/data-spaces/{id}/drop-table`               | `data-spaces:write`     |
+| Dataspace   | POST | `/api/v1/dataspaces/{datasourceId}/execute`         | 无（需登录）            |
 | Device Flow | POST | `/api/v1/api-keys/device-flow/code`                 | 无                      |
 | Device Flow | POST | `/api/v1/api-keys/device-flow/token`                | 无                      |
 | Auth        | GET  | `/api/v1/auth/current`                              | 无（需有效 API Key）    |
@@ -57,7 +55,7 @@ def _request(url, method="GET", payload=None):
 
 `GET /datasources/{datasourceId}/info`
 
-返回 datasource 的元信息，如类型、引擎、展示名称等。请始终检查返回中的 `type` 字段 — 只有 `ducklake` 类型 datasource 支持 data-spaces 操作。
+返回 datasource 的元信息，如类型、引擎、展示名称等。请始终检查返回中的 `type` 字段 — 只有 `dataspace` 类型 datasource 支持 Dataspace SQL 执行（写入）操作。
 
 ```python
 data = _request(f"{BASE_URL}/api/v1/datasources/CXNGJifvqE48kdzKVC9o5/info")
@@ -103,9 +101,9 @@ data = _request(f"{BASE_URL}/api/v1/datasources/CXNGJifvqE48kdzKVC9o5/describe-t
 
 `POST /datasources/{datasourceId}/scan`
 
-触发 datasource 的异步 schema 扫描。该命令会立即返回任务信息，实际扫描在后台执行。此端点主要用于非 ducklake datasource 的元数据发现。
+触发 datasource 的异步 schema 扫描。该命令会立即返回任务信息，实际扫描在后台执行。主要用于刷新数据源的表元数据。
 
-对于 `ducklake` data-spaces，推荐使用 data-spaces 的 `describe-table` 端点获取实时表结构。
+对于 `dataspace`，改动 schema（建表/删表等）后可调用本端点刷新元数据；如需查看实时表结构，直接用 `POST /dataspaces/{id}/execute` 执行 `DESCRIBE {table}`。
 
 ```python
 data = _request(f"{BASE_URL}/api/v1/datasources/CXNGJifvqE48kdzKVC9o5/scan", method="POST")
@@ -287,108 +285,69 @@ url = f"{BASE_URL}/api/v1/executions/CaU6DR.../result?format=csv"
 
 ---
 
-## Data Spaces API
+## Dataspace SQL 执行 API
 
-> **注意：** 只有 `ducklake` 类型的 datasource 支持 data-spaces 操作。请先通过 `get-datasource-info` 确认类型。
+> **注意：** 只有 `dataspace` 类型的 datasource 支持此接口（旧类型名 `ducklake` 已废弃）。请先通过 `/datasources/{id}/info` 确认 `type` 为 `dataspace`。
 
-### 创建表
+`POST /dataspaces/{datasourceId}/execute` 在**单一 dataspace** 内同步执行任意 DuckDB SQL，用于**调整表结构和填充数据**（CREATE TABLE、INSERT、UPDATE、DELETE、DROP 等）。这一个端点取代了原先的 create-table / insert-rows / drop-table / describe-table 端点。
 
-`POST /data-spaces/{datasourceId}/create-table`
+> **读取数据不要用这个端点。** 查询（含读取 dataspace 数据）请走 `execute-adhoc`，把 dataspace 作为数据源挂载到查询上（见上文执行 API 与 [query-guide.md](./query-guide.md)）。
+
+- 路径段是 `dataspaces`（一个词），路径参数是 `datasourceId`。
+- **无需特殊权限** — 有效 API Key（登录）即可。
+- **同步返回**，直接返回结果 dataset，**没有 `executionId`**。
+- 结果超过 **10000 行会被截断**。
 
 请求体：
 
-| 字段        | 类型   | 必填 | 说明                                           |
-| ----------- | ------ | ---- | ---------------------------------------------- |
-| `tableName` | string | 是   | 表名                                           |
-| `columns`   | array  | 是   | `[{"columnName": "...", "columnType": "..."}]` |
+| 字段     | 类型            | 必填 | 默认   | 说明                                        |
+| -------- | --------------- | ---- | ------ | ------------------------------------------- |
+| `query`  | string          | 是   | —      | DuckDB SQL 语句                             |
+| `args`   | array (`[]any`) | 否   | —      | 占位符参数（参数化查询，防注入）            |
+| `format` | string          | 否   | `json` | `json` \| `ndjson` \| `csv` \| `parquet`    |
 
-有效的 `columnType` 包括 `INTEGER`、`VARCHAR`、`DOUBLE`、`BOOLEAN`、`TIMESTAMP`、`BIGINT`、`FLOAT` 等。
+在 dataspace 内部直接执行，表名用**裸名** `tablename` 或 `main.tablename`（无需 catalog/别名前缀）。
+
+### 建表
+
+```python
+payload = {"query": "CREATE TABLE products (id INTEGER, name VARCHAR, price DOUBLE)"}
+_request(f"{BASE_URL}/api/v1/dataspaces/CXNGJifvqE48kdzKVC9o5/execute", method="POST", payload=payload)
+```
+
+### 插入数据（参数化，推荐）
+
+用 `args` 传参可避免手工拼接 SQL 带来的注入与转义问题：
 
 ```python
 payload = {
-    "tableName": "products",
-    "columns": [
-        {"columnName": "id", "columnType": "INTEGER"},
-        {"columnName": "name", "columnType": "VARCHAR"},
-    ],
+    "query": "INSERT INTO products VALUES (?, ?, ?)",
+    "args": [1, "Widget", 9.99],
 }
-_request(f"{BASE_URL}/api/v1/data-spaces/123/create-table", method="POST", payload=payload)
+_request(f"{BASE_URL}/api/v1/dataspaces/CXNGJifvqE48kdzKVC9o5/execute", method="POST", payload=payload)
 ```
 
-| 状态码 | 含义              |
-| ------ | ----------------- |
-| 204    | 已创建            |
-| 404    | data space 未找到 |
-| 409    | 表已存在          |
-
-### data-spaces 描述表
-
-`POST /data-spaces/{datasourceId}/describe-table`
-
-请求体：
-
-| 字段        | 类型   | 必填 | 说明 |
-| ----------- | ------ | ---- | ---- |
-| `tableName` | string | 是   | 表名 |
-
-```python
-payload = {"tableName": "products"}
-data = _request(f"{BASE_URL}/api/v1/data-spaces/123/describe-table", method="POST", payload=payload)
-for col in data["columns"]:
-    print(col["column_name"], col["data_type"])
-```
+> 批量写入时循环调用，或用 `INSERT INTO products SELECT * FROM read_csv('...')` 等 DuckDB 原生批量语法。
 
 ### 删除表
 
-`POST /data-spaces/{datasourceId}/drop-table`
-
-请求体：
-
-| 字段        | 类型   | 必填 | 说明 |
-| ----------- | ------ | ---- | ---- |
-| `tableName` | string | 是   | 表名 |
-
 ```python
-payload = {"tableName": "products"}
-_request(f"{BASE_URL}/api/v1/data-spaces/123/drop-table", method="POST", payload=payload)
+payload = {"query": "DROP TABLE IF EXISTS products"}
+_request(f"{BASE_URL}/api/v1/dataspaces/CXNGJifvqE48kdzKVC9o5/execute", method="POST", payload=payload)
 ```
 
-| 状态码 | 含义              |
-| ------ | ----------------- |
-| 200    | 已删除            |
-| 404    | data space 未找到 |
+### 查看表结构
 
-### 插入行
-
-`POST /data-spaces/{datasourceId}/insert-rows`
-
-请求体：
-
-| 字段        | 类型            | 必填 | 说明                              |
-| ----------- | --------------- | ---- | --------------------------------- |
-| `tableName` | `string`        | 是   | 表名                              |
-| `columns`   | `array[string]` | 是   | 与目标表列名一致的列名列表        |
-| `rows`      | `array[array]`  | 是   | 每一行数据，按 `columns` 顺序排列 |
-
-插入操作为事务性：全部成功或全部回滚。`map[string]any` 值会自动序列化为 JSON 字符串。
+在 dataspace 内直接查 `information_schema` 或用 `DESCRIBE`：
 
 ```python
-payload = {
-    "tableName": "products",
-    "columns": ["id", "name", "price"],
-    "rows": [
-        [1, "Widget", 9.99],
-        [2, "Gadget", 24.99],
-    ],
-}
-_request(f"{BASE_URL}/api/v1/data-spaces/123/insert-rows", method="POST", payload=payload)
+payload = {"query": "DESCRIBE products", "format": "json"}
+data = _request(f"{BASE_URL}/api/v1/dataspaces/CXNGJifvqE48kdzKVC9o5/execute", method="POST", payload=payload)
 ```
 
-| 状态码 | 含义              |
-| ------ | ----------------- |
-| 200    | 已插入            |
-| 400    | 表未找到          |
-| 404    | data space 未找到 |
+### 选择 format
+
+`json` 便于脚本内直接处理；`ndjson`/`csv`/`parquet` 适合把结果落盘。脚本中如需保存大结果，优先请求 `csv` 或 `parquet` 并写入文件。
 
 ---
 

@@ -4,8 +4,8 @@ description: |
   本技能包含对 Datadata 平台的详细操作手册，在使用 Datadata 平台相关功能时，**必须先加载本技能**。
   Datadata 平台功能包括:
   1. 数据源管理 - 搜索、查询、元数据增强
-  2. 执行 Query 查询 - 对数据源执行 DQL、DQL 查询，并获取结果
-  3. Data Spaces 数据空间管理 - 建表、写入数据、删除表
+  2. 执行 Query 查询 - 对数据源执行 SQL、DQL 查询，并获取结果
+  3. Data Spaces 数据空间管理 - 创建数据空间、通过 SQL 管理表结构与数据
 ---
 
 ## 功能概览
@@ -20,11 +20,10 @@ description: |
 - **搜索数据源** — 支持用户名/关键词搜索公开和私有数据源
 - **元数据查询** — 检查数据源信息、列出表、描述列结构
 - **元数据增强** — 设置表注释和列注释，提升数据可理解性
-- **Data Spaces 建表** — 创建表结构，支持 INTEGER、VARCHAR、DOUBLE 等类型
-- **Data Spaces 写入** — 批量插入数据行
-- **Data Spaces 删除** — 删除表
+- **创建 Data Space** — `dataspace-create` 创建数据空间数据源
+- **Data Space SQL 执行** — `dataspace-execute-sql` 在单一数据空间内运行任意 DuckDB SQL（建表/写入/改表/删表等 DDL/DML）
 - **Schema 扫描** — 触发异步扫描，刷新数据源表元数据
-- **执行 SQL 查询** — 通过 `execute-adhoc` 执行 SELECT 查询，返回执行 ID 和结果下载链接
+- **执行 SQL 查询** — 通过 `execute-adhoc` 执行 SELECT 查询（只读），返回执行 ID 和结果下载链接
 - **DQL 脚本执行** — 支持 DQL（Starlark）脚本类型
 
 ## 使用场景
@@ -50,19 +49,19 @@ description: |
 | `get-datasource-info`       | 获取数据源元信息             | `datasourceId`                                                                                                     |
 | `list-tables`               | 列出表和视图                 | `datasourceId`, `schemaName`（可选）                                                                               |
 | `describe-table`            | 获取表列结构（缓存，含注释） | `datasourceId`, `schemaName`, `tableName`                                                                          |
-| `describe-data-space-table` | 查看 Data Space 表实时结构   | `datasourceId`, `tableName`                                                                                        |
 | `scan-datasource`           | 触发 Schema 扫描             | `datasourceId`                                                                                                     |
 | `set-table-comment`         | 设置表/列注释                | `datasourceId`, `schemaName`, `tableName`, `tableComment`（可选）, `columnComments`（可选）                        |
-| `create-table`              | 创建 Data Space 表           | `datasourceId`, `tableName`, `columns` — `[{"columnName":"...", "columnType":"..."}]`                              |
-| `insert-rows`               | 插入数据行                   | `datasourceId`, `tableName`, `columns`（列名数组）, `rows`（二维数据数组）                                         |
-| `drop-table`                | 删除 Data Space 表           | `datasourceId`, `tableName`                                                                                        |
-| `execute-adhoc`             | 执行 SQL/DQL 查询            | `name`, `script`, `scriptType`（sql/dql）, `queryEngine`（duckdb/clickhouse）, `datasources`, `parameters`（可选） |
+| `dataspace-create`          | 创建数据空间数据源           | `name`, `displayName`, `description`, `visibility`（public/private）, `tags`（可选）                               |
+| `dataspace-execute-sql`     | 在数据空间内执行 SQL（写）   | `datasourceId`, `sql`（DuckDB SQL，建表/写入/改表/删表）, `args`（可选，占位符参数）                               |
+| `execute-adhoc`             | 执行 SQL/DQL 查询（只读）    | `name`, `script`, `scriptType`（sql/dql）, `queryEngine`（duckdb/clickhouse）, `datasources`, `parameters`（可选） |
 
 ## 概念
 
-- **Datasource** — 查询目标的数据源。不同类型的 datasource（ducklake、MySQL、ClickHouse、CSV 等）有不同的表命名约定。
+- **Datasource** — 查询目标的数据源。不同类型的 datasource（dataspace、MySQL、ClickHouse、CSV 等）有不同的表命名约定。
+- **Data space** — `dataspace` 类型数据源（旧类型名 `ducklake` 已废弃），基于 DuckDB 文件存储，可建表、写数据。
+- **读 / 写分离** — **查询/读取任何数据用 `execute-adhoc`**（查询引擎，把 dataspace 作为只读数据源挂载）；**修改某个 dataspace 内的表结构或数据用 `dataspace-execute-sql`**（单一 dataspace，同步执行）。两者用途完全不同，勿混淆。
 - **Query**（`execute-adhoc`） — **只读**抽象，包含 SQL/DQL 脚本、datasource 绑定和查询引擎类型。每次调用创建一个 execution 并返回 `executionId`。
-- **Execution** — 查询的后台执行实例。执行完成后通过返回的下载链接获取 NDJSON/CSV 结果。
+- **Execution** — 查询的后台执行实例。执行完成后通过返回的下载链接获取 NDJSON/CSV 结果。（`dataspace-execute-sql` 是同步的，无 execution，结果直接返回。）
 
 ## 工作流
 
@@ -76,7 +75,14 @@ description: |
 
 ### Data Spaces 操作
 
-`create-table` 建表 → `insert-rows` 写入 → `drop-table` 删除，Data Spaces 全流程已 MCP 覆盖。仅限 `ducklake` 类型数据源。详见 [Data Spaces 指南](./references/data-spaces.md)。
+```
+dataspace-create（创建数据空间）
+  → dataspace-execute-sql（CREATE TABLE / INSERT 建表写数据）
+  → execute-adhoc（挂载 dataspace 查询验证数据）
+  → dataspace-execute-sql（DROP TABLE 清理）
+```
+
+建表/写入/改表/删表全部通过 `dataspace-execute-sql` 执行任意 DuckDB SQL 完成；**查询走 `execute-adhoc`**。仅限 `dataspace` 类型数据源。详见 [Data Spaces 指南](./references/data-spaces.md)。
 
 ### DQL 脚本
 
@@ -109,7 +115,7 @@ Agent 只执行用户**明确要求**的操作，完成当前步骤后**立即�
 
 ### 🔴 execute-adhoc 仅限 SELECT
 
-`execute-adhoc` **只支持 SELECT**，禁止 INSERT/UPDATE/DELETE/DDL。数据写入请使用 Data Spaces 工具（`create-table`、`insert-rows`、`drop-table`）。
+`execute-adhoc` **只支持 SELECT**（只读查询引擎，dataspace 以只读方式挂载），禁止 INSERT/UPDATE/DELETE/DDL。数据写入和表管理请使用 `dataspace-execute-sql`。
 
 ### 查询结果处理
 
@@ -150,14 +156,14 @@ Datadata MCP Server **首选 OAuth 自动授权**（无需手动申请 Key）。
 
 ### Q: 需要写数据（Data Spaces）怎么办？
 
-MCP 已完整支持 Data Spaces：`create-table` 建表 → `insert-rows` 写入 → `drop-table` 删除。
+用 `dataspace-execute-sql` 执行任意 DuckDB SQL：`CREATE TABLE` 建表、`INSERT`/`UPDATE`/`DELETE` 改数据、`DROP TABLE` 删表。需要新建数据空间时先用 `dataspace-create`。写完后如改了 schema，可调 `scan-datasource` 刷新元数据。
 
 ## References
 
 | 文档                                                           | 说明                                           |
 | -------------------------------------------------------------- | ---------------------------------------------- |
 | [./references/query-guide.md](./references/query-guide.md)     | 查询引擎、表命名、标识符引用、安全性等完整规范 |
-| [./references/data-spaces.md](./references/data-spaces.md)     | Data Spaces 表管理完整说明                     |
+| [./references/data-spaces.md](./references/data-spaces.md)     | Dataspace 创建与 SQL 执行（建表/写入/删表）    |
 | [./references/api-key-setup.md](./references/api-key-setup.md) | API Key Device Flow 自动申请指南               |
 
 ### 相关 skill（可选安装）

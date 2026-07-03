@@ -4,7 +4,7 @@ description: |
   本技能提供对 Datadata 平台 Rest API 的完整参考文档，在使用 Datadata Rest API 之前，**必须先加载本技能**。
   本技能提供完整的 API 端点说明和 urllib.request（零额外依赖）调用示例。
   首要用例是生成爬虫、ETL、批处理脚本，同时适用于所有需要直接调用 Datadata API 的场景。
-  涵盖数据源查询、SQL 执行、结果下载、Data Spaces 表管理全流程。
+  涵盖数据源查询、SQL 执行、结果下载、Dataspace SQL 执行全流程。
   使用场景：
   1. 生成独立 Python 脚本（爬虫、ETL、批处理）
   2. 生成定时任务脚本，比如每天定时爬去最新金融数据，并写入 Data Space 数据空间。
@@ -23,8 +23,8 @@ description: |
 - **REST API 参考** — 所有端点的完整说明，含请求/响应示例
 - **urllib.request 调用模板** — 即拿即用的 Python 代码片段
 - **数据源操作** — 搜索、元信息、表结构、Schema 扫描
-- **SQL 查询** — execute-adhoc（仅 SELECT）、结果下载（NDJSON/CSV）
-- **Data Spaces** — 建表、批量写入、删除表
+- **SQL 查询** — execute-adhoc（只读，异步）、结果下载（NDJSON/CSV）
+- **Dataspace SQL 执行** — 通过 execute 端点运行任意 DuckDB SQL（建表/写入/改表/删表），同步返回
 - **设备授权** — 脚本中自动获取/刷新 API Key
 
 ## 使用场景
@@ -45,10 +45,11 @@ description: |
 
 ## 概念
 
-- **Datasource** — 查询目标的数据源。不同类型的 datasource（ducklake、MySQL、ClickHouse、CSV 等）有不同的表命名约定。
-- **Data space** — 录入数据的目标。`ducklake` 类型 datasource 独有的能力，支持创建表、批量插入和删除表。data-space 名称为 datasource 的 `name`（通过 `/datasources/{id}/info` 获取）。
-- **Query** (`execute-adhoc`) — **只读**抽象，包含 SQL 脚本（仅 SELECT）、datasource 绑定和查询引擎类型。
-- **Execution** — 查询的后台执行实例。通过 `/executions/{id}/result` 异步获取结果。
+- **Datasource** — 查询目标的数据源。不同类型的 datasource（dataspace、MySQL、ClickHouse、CSV 等）有不同的表命名约定。
+- **Data space** — 录入数据的目标，`dataspace` 类型 datasource（旧类型名 `ducklake` 已废弃）。通过 `POST /dataspaces/{datasourceId}/execute` 执行任意 DuckDB SQL 来管理表结构与数据。
+- **读 / 写分离** — **查询/读取任何数据走 `execute-adhoc`**（查询引擎，把 dataspace 作为只读数据源挂载）；**修改某个 dataspace 内的表结构或数据走 `POST /dataspaces/{id}/execute`**（单一 dataspace，同步执行）。
+- **Query** (`execute-adhoc`) — **只读**抽象，包含 SQL 脚本、datasource 绑定和查询引擎类型。
+- **Execution** — `execute-adhoc` 查询的后台执行实例。通过 `/executions/{id}/result` 异步获取结果。（Dataspace SQL 执行是同步的，无 execution。）
 
 ## API Key
 
@@ -64,10 +65,11 @@ API Key 在 Datadata 网页端创建：登录 → 头像 → Settings → API Ke
 所需权限：
 
 - `datasources:read` — 查询元信息
-- `queries:execute-adhoc` — 执行 SQL
+- `queries:execute-adhoc` — 执行 SQL（读取查询）
 - `executions:get` — 获取查询结果
 - `datasources:scan` — 设置注释、触发扫描
-- `data-spaces:write` — Data Spaces 表管理（爬虫写入场景必需）
+
+> **Dataspace SQL 执行（`POST /dataspaces/{id}/execute`）当前无需特殊权限** — 有效 API Key（登录）即可，无需 `data-spaces:write`。
 
 ### 设备授权（适用于无人值守脚本）
 
@@ -121,7 +123,7 @@ Agent 只执行用户**明确要求**的操作。生成脚本后立即停止，�
 
 ### 查询只读
 
-`execute-adhoc` **仅支持 SELECT**。INSERT/UPDATE/DELETE/DDL 请使用 Data Spaces 的 `insert-rows` 端点。
+`execute-adhoc` **仅支持 SELECT**（只读查询引擎，dataspace 以只读方式挂载）。INSERT/UPDATE/DELETE/DDL 请使用 Dataspace SQL 执行端点 `POST /dataspaces/{datasourceId}/execute`。
 
 ### 结果处理
 
@@ -133,7 +135,7 @@ Agent 只执行用户**明确要求**的操作。生成脚本后立即停止，�
 | ---------------------------------------------------------- | ---------------------------------- |
 | [./references/api.md](./references/api.md)                 | REST API 端点完整参考              |
 | [./references/query-guide.md](./references/query-guide.md) | 查询引擎、表命名、标识符引用       |
-| [./references/data-spaces.md](./references/data-spaces.md) | Data Spaces 表管理（爬虫写入必备） |
+| [./references/data-spaces.md](./references/data-spaces.md) | Dataspace SQL 执行（爬虫写入必备） |
 
 ### 相关 skill
 

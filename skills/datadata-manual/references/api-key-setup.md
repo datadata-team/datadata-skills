@@ -81,7 +81,7 @@ Agent 申请的默认权限集如下，可根据实际需要调整：
 | `datasources:read`         | 读取数据源信息和元数据 |
 | `datasources:scan`         | 触发 Schema 扫描       |
 | `datasources:replace-file` | 替换数据源文件         |
-| `data-spaces:write`        | Data Spaces 建表/写入  |
+| `data-spaces:write`        | Data Spaces 写入（前向兼容保留；当前 dataspace SQL 执行无需此权限） |
 | `executions:get`           | 获取执行结果           |
 | `queries:execute`          | 执行已保存的查询       |
 | `queries:execute-adhoc`    | 执行临时查询           |

@@ -12,21 +12,23 @@
 
 - 在 `execute-adhoc` 请求体中通过 `datasources` 数组绑定：`[{"datasourceId": "ID", "attachAlias": "ALIAS"}]`，可绑定多个
 - SQL 中通过别名而非 datasource ID 引用表
-- **例外**：`ducklake` 类型数据源忽略别名 — 始终使用 datasource 自身的 `name` 作为 schema。通过 `GET /datasources/{id}/info` 获取。
+- `dataspace` 类型数据源以只读方式挂载为普通 DuckDB 数据库，同样通过别名引用（惯例上用 datasource 的 `name` 作为别名）
 
 ## 表命名
 
 在 SQL 中引用表的方式取决于数据源的**类型**。在编写 SQL 前，务必通过 `get-datasource-info` 检查数据源类型，以使用正确的命名模式。
 
-### Ducklake 数据源（类型 `ducklake`）
+### Dataspace 数据源（类型 `dataspace`）
 
-Datadata 管理的基于 DuckDB 的 data-spaces。catalog 名固定为 `ducklake`。datasource 自身的 `name`（来自 `get-datasource-info`）用作 schema — **不支持自定义别名**。schema 层级不超过 datasource 名：
+Datadata 管理的基于 DuckDB 文件的 data-spaces（旧类型名 `ducklake` 已废弃）。在 `execute-adhoc` 中作为普通 DuckDB 数据库以 `READ_ONLY` 方式挂载。catalog 段是挂载别名（`attachAlias`），schema 固定为 DuckDB 的 `main`：
 
 ```txt
-ducklake.{datasourceName}.{tableName}
+"{attachAlias}".main."{tableName}"
 ```
 
-通过 `GET /datasources/{id}/info` 获得 datasource 名，在 SQL 和 `datasources` 绑定中使用。表管理操作详见 [data-spaces.md](./data-spaces.md)。
+别名由 `datasources` 绑定里指定，惯例上复用 datasource 的 `name`（通过 `GET /datasources/{id}/info` 获取），此时即 `"{datasourceName}".main."{tableName}"`。
+
+> **写入/表管理**（建表、插入、删表）不走 `execute-adhoc`，而是走 `POST /dataspaces/{datasourceId}/execute`，详见 [data-spaces.md](./data-spaces.md)。
 
 ### 数据库数据源（MySQL、PostgreSQL、DuckDB、SQLite、ClickHouse 等）
 
@@ -68,7 +70,7 @@ SELECT id, name, status FROM sales WHERE order = 'abc'
 ## 安全性
 
 - `execute-adhoc` 是**只读的**。不要用它执行 INSERT、UPDATE、DELETE、DROP、ALTER 或任何修改数据的 SQL
-- 仅 `insert-rows` API 端点可以插入数据 — 支持**批量插入**
+- 写入 dataspace 走 `POST /dataspaces/{datasourceId}/execute`（DDL/DML 均可），详见 [data-spaces.md](./data-spaces.md)
 - 未明确要求时不要运行破坏性 SQL
 - 不要默默改写业务逻辑 SQL
 
