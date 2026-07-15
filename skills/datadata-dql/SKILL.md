@@ -25,9 +25,17 @@ return df
 df = query("SELECT * FROM users")
 ```
 
-### 2. 必须先阅读对应的 References 文档
+### 2. 编写前必须先阅读 grammar.txt（语法规范）
 
-**禁止仅凭本文档就编写 DQL 代码。** 本文档只是索引，实际 API 签名、参数、返回值以 references 为准。编写代码前至少阅读以下对应文档：
+DQL 基于 Starlark。**编写任何 DQL 脚本前，必须先阅读 [grammar.txt](./references/grammar.txt)**（Starlark EBNF 语法），严格按其允许的语法结构编写，**不得套用 grammar.txt 未定义的语法**。
+
+### 3. 必须先阅读对应的 References 文档
+
+**禁止仅凭本文档就编写 DQL 代码。** 本文档只是索引，实际 API 签名、参数、返回值以 references 为准。
+
+> **两类"必读"分工**：[grammar.txt](./references/grammar.txt) 管**语法**（所有脚本都要先读，见上一条）；各 `.md` 管 **API**（按场景读）。
+
+编写代码前至少阅读以下对应文档：
 
 | 场景                   | 必读文档                                                                                          |
 | ---------------------- | ------------------------------------------------------------------------------------------------- |
@@ -39,15 +47,15 @@ df = query("SELECT * FROM users")
 | concat / throw / print | [builtins.md](./references/builtins.md)                                                           |
 | 2D 绘图                | [canvas_drawing.md](./references/canvas_drawing.md)                                               |
 
-### 3. 关于 API 文档的权威来源
+### 4. 关于 API 文档的权威来源
 
 所有函数/类的完整签名定义以 [**builtins**.pyi](./references/__builtins__.pyi) 为准，各 `.md` 文件仅为快速参考和示例说明。
 
-### 4. 所有 DQL 扩展均为内置全局名称
+### 5. 所有 DQL 扩展均为内置全局名称
 
 `query`、`fetch`、`concat`、`throw`、`json`、`math`、`time`、`canvas`、`DataFrame`、`Series` **都是内置的全局名称，无需 `import`**。
 
-### 5. 不确定时先问用户，不要自行猜测
+### 6. 不确定时先问用户，不要自行猜测
 
 当遇到以下情况时，**必须**先向用户确认，而不是自行假设：
 
@@ -68,6 +76,7 @@ return {"type": type(resp.body), "data": resp.body}  # 让用户确认类型和�
 
 ## 工作流程
 
+0. **阅读语法规范** — 编写前先读 [grammar.txt](./references/grammar.txt)，确认可用语法（见核心规则第 2 条）
 1. **理解用户需求** — 确定脚本的目标（数据转换、数据清洗、数据生成、可视化、HTTP 调用等）
 2. **查询数据** — 使用 `query()` 或 `fetch()` 获取数据
 3. **先验证数据再处理** — 用 `return` 临时返回原始数据确认结构，**不要凭猜测写代码**
@@ -123,9 +132,9 @@ return {"type": type(resp.body), "data": resp.body}  # 让用户确认类型和�
 
 ## Starlark 基础
 
-DQL 基于 Starlark（Python 风格），支持：
+DQL 基于 Starlark，支持：
 
-```python
+```
 # 基本类型
 x = 42                      # 整数
 s = "hello"                 # 字符串
@@ -146,28 +155,13 @@ square = lambda x: x * x
 
 详见 [Starlark 官方文档](https://github.com/bazelbuild/starlark/blob/master/spec.md)。
 
-### Starlark 与 Python 的关键差异
-
-以下是 Starlark **不支持**的 Python 特性，编写 DQL 脚本时务必避免：
-
-| ❌ 不支持              | 替代方案                                               |
-| ---------------------- | ------------------------------------------------------ |
-| `import` 语句          | 所有 DQL 扩展为内置全局名称，直接使用                  |
-| **`isinstance(x, T)`** | ❌ **不支持，**使用 `x == None` 或检查具体字段         |
-| **`try` / `except`**   | ❌ **不支持，**使用 `throw()` 提前终止，或返回错误信息 |
-| `type(x)`              | 返回类型名称字符串（如 `"int"`）                       |
-| `set()` / `{}` 集合    | 使用 dict 或 list 替代                                 |
-| `class` 定义           | Starlark 不支持自定义类                                |
-| `global` / `nonlocal`  | 不支持                                                 |
-| generator / `yield`    | 不支持                                                 |
-| `open()` / 文件 I/O    | 使用 `query()` 和 `fetch()`                            |
-
 ## References
 
 本 skill 包含以下参考文档：
 
 | 文档                                                | 说明                                    |
 | --------------------------------------------------- | --------------------------------------- |
+| [grammar.txt](./references/grammar.txt)             | Starlark EBNF 语法规范（编写前必读）    |
 | [dataframe.md](./references/dataframe.md)           | DataFrame 完整 API 参考                 |
 | [series.md](./references/series.md)                 | Series 完整 API 参考                    |
 | [query.md](./references/query.md)                   | SQL 查询（query）参考                   |
@@ -180,5 +174,7 @@ square = lambda x: x * x
 
 ### 外部资源
 
+- **语法规范**：[grammar.txt](./references/grammar.txt) — Starlark EBNF 语法（编写前必读，权威来源）
+- **Starlark 官方文档**：[Starlark 官方文档](https://github.com/bazelbuild/starlark/blob/master/spec.md)
 - **完整 API 签名**：[**builtins**.pyi](./references/__builtins__.pyi) — 所有类型提示（权威来源）
 - **Starlark 语言**：https://github.com/bazelbuild/starlark/blob/master/spec.md — 官方 Starlark 语言规范
