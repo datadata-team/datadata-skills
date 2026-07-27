@@ -9,6 +9,7 @@ Skills repository for the Datadata analytics platform. Four skills:
 | **`datadata-manual/`**   | Datadata 平台操作手册 — 通过 MCP Server 交互式查询、探索数据、管理 Data Spaces。**交互式操作的首选方式。** | [SKILL.md](skills/datadata-manual/SKILL.md)   |
 | **`datadata-rest-api/`** | Datadata REST API 参考 — 完整端点文档和 `urllib.request` 调用示例。首要用例：生成爬虫/ETL/批处理脚本。     | [SKILL.md](skills/datadata-rest-api/SKILL.md) |
 | **`datadata-dql/`**      | DQL (Starlark) 脚本编写 — 数据转换、DataFrame/Series 操作、SQL 查询、HTTP 请求、2D 绘图                    | [SKILL.md](skills/datadata-dql/SKILL.md)      |
+| **`datadata-python/`**   | Python 查询脚本编写 — 真 Python（RustPython/WASM），Polars 风格 DataFrame/Series/Expr、`query()` 取数、`fetch()` 请求 | [SKILL.md](skills/datadata-python/SKILL.md)   |
 | **`datadata-memory/`**   | AI 持久化记忆管理 — 添加、搜索、更新、删除记忆，支持语义搜索和多维度过滤                                   | [SKILL.md](skills/datadata-memory/SKILL.md)   |
 
 ## Critical agent rules (must-follow)
@@ -55,13 +56,20 @@ datadata-skills/
 │   ├── SKILL.md
 │   └── references/
 │       └── memory-guide.md
-└── skills/datadata-dql/                # DQL (Starlark) 脚本编写
+├── skills/datadata-dql/                # DQL (Starlark) 脚本编写
+│   ├── SKILL.md
+│   └── references/
+│       ├── __builtins__.pyi
+│       ├── builtins.md, dataframe.md, series.md
+│       ├── query.md, fetch.md, json.md, math.md, time.md
+│       ├── canvas_drawing.md, faq_best_practices.md
+└── skills/datadata-python/             # Python 查询脚本编写 (Polars 风格)
     ├── SKILL.md
     └── references/
-        ├── __builtins__.pyi
-        ├── builtins.md, dataframe.md, series.md
-        ├── query.md, fetch.md, json.md, math.md, time.md
-        ├── canvas_drawing.md, faq_best_practices.md
+        ├── __builtins__.pyi            # 签名权威源 (复制自后端 lib/python-executor)
+        ├── builtins.md                 # query / fetch / args / print / pl
+        ├── dataframe.md, series.md, expr.md
+        └── examples.md                 # 全部特性的可运行示例
 ```
 
 ## Developer commands
@@ -76,6 +84,8 @@ datadata-skills/
 | `npx skills add ./skills/datadata-memory --agent codex --global`         | 安装 Memory skill 到 Codex         |
 | `npx skills add ./skills/datadata-dql --agent claude-code --global`      | 安装 DQL skill 到 Claude Code      |
 | `npx skills add ./skills/datadata-dql --agent codex --global`            | 安装 DQL skill 到 Codex            |
+| `npx skills add ./skills/datadata-python --agent claude-code --global`   | 安装 Python skill 到 Claude Code   |
+| `npx skills add ./skills/datadata-python --agent codex --global`         | 安装 Python skill 到 Codex         |
 | `export DATADATA_API_KEY="ak_..."`                                       | Set API key manually               |
 | `export DATADATA_BASE_URL="https://www.datadata.com"`                    | Override base URL (local dev only) |
 
@@ -92,4 +102,5 @@ datadata-skills/
 - **datadata-manual**: MCP tool changes require updating `skills/datadata-manual/SKILL.md`
 - **datadata-rest-api**: API endpoint changes require updating `skills/datadata-rest-api/references/api.md`
 - **datadata-dql**: Reference changes must keep `__builtins__.pyi` (source of truth for signatures) and `.md` docs in sync
+- **datadata-python**: `references/__builtins__.pyi` is copied from the backend `lib/python-executor/__builtins__.pyi` (source of truth for signatures) — re-copy it when the backend API changes, and keep the `.md` docs and verified `examples.md` in sync
 - New features should provide DQL code samples (datadata-dql), not CLI subprocess calls

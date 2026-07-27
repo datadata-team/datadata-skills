@@ -44,6 +44,12 @@ Datadata REST API 完整参考文档 — 提供所有端点说明和 `urllib.req
 
 详细用法见 [skills/datadata-dql/SKILL.md](./skills/datadata-dql/SKILL.md)。
 
+### datadata-python
+
+编写 Python 数据查询脚本 — 运行真正的 Python（RustPython/WASM 沙箱），提供 Polars 风格的 DataFrame/Series/Expr API，通过 `query()` 取数、`fetch()` 发起 HTTP 请求，适用于数据转换、清洗、生成等自定义数据处理场景。
+
+详细用法见 [skills/datadata-python/SKILL.md](./skills/datadata-python/SKILL.md)。
+
 ### 认证方式
 
 **datadata-manual（推荐）**：使用 OAuth 认证，登录一次即可，无需 API Key。

@@ -44,6 +44,12 @@ Write DQL (Datadata Query Language) scripts — a Starlark-based scripting langu
 
 See [skills/datadata-dql/SKILL.md](./skills/datadata-dql/SKILL.md) for detailed usage.
 
+### datadata-python
+
+Write Python data query scripts — real Python (RustPython/WASM sandbox) with a Polars-style DataFrame/Series/Expr API, SQL data access via `query()`, and HTTP requests via `fetch()`. For data transformation, cleaning, generation, and custom processing logic.
+
+See [skills/datadata-python/SKILL.md](./skills/datadata-python/SKILL.md) for detailed usage.
+
 ### Authentication
 
 **datadata-manual (recommended)**: Uses OAuth — sign in once, no API Key needed.
