@@ -1,6 +1,6 @@
 # query 函数
 
-> 完整 API 签名请参考 [**builtins**.pyi](./__builtins__.pyi)。
+> 完整 API 签名请参考 [**builtins**.pyi](./builtins.pyi)。
 
 执行 SQL 查询并返回 DataFrame。支持参数化查询防止 SQL 注入。
 

@@ -59,14 +59,14 @@ datadata-skills/
 ├── skills/datadata-dql/                # DQL (Starlark) 脚本编写
 │   ├── SKILL.md
 │   └── references/
-│       ├── __builtins__.pyi
+│       ├── builtins.pyi
 │       ├── builtins.md, dataframe.md, series.md
 │       ├── query.md, fetch.md, json.md, math.md, time.md
 │       ├── canvas_drawing.md, faq_best_practices.md
 └── skills/datadata-python/             # Python 查询脚本编写 (Polars 风格)
     ├── SKILL.md
     └── references/
-        ├── __builtins__.pyi            # 签名权威源 (复制自后端 lib/python-executor)
+        ├── builtins.pyi            # 签名权威源 (复制自后端 lib/python-executor)
         ├── builtins.md                 # query / fetch / args / print / pl
         ├── dataframe.md, series.md, expr.md
         └── examples.md                 # 全部特性的可运行示例
@@ -93,7 +93,7 @@ datadata-skills/
 
 - **Commit messages**: AngularJS style in Chinese — `feat(auth): 新增登录功能`
 - **Python (datadata-rest-api)**: stdlib-only, no external deps. Generated scripts must use `urllib.request` directly.
-- **DQL**: All built-ins are globals (`query`, `fetch`, `DataFrame`, `Series`, `json`, `math`, etc.) — no `import` needed. `__builtins__.pyi` is the source of truth for signatures.
+- **DQL**: All built-ins are globals (`query`, `fetch`, `DataFrame`, `Series`, `json`, `math`, etc.) — no `import` needed. `builtins.pyi` is the source of truth for signatures.
 - **Docs**: Pure Chinese. Markdown files don't word-wrap (`.vscode/settings.json` → `[markdown].editor.wordWrap = off`).
 
 ## Editing guidance
@@ -101,6 +101,6 @@ datadata-skills/
 - Skill docs (`SKILL.md`, `references/`) are the primary artifacts — keep them in sync
 - **datadata-manual**: MCP tool changes require updating `skills/datadata-manual/SKILL.md`
 - **datadata-rest-api**: API endpoint changes require updating `skills/datadata-rest-api/references/api.md`
-- **datadata-dql**: Reference changes must keep `__builtins__.pyi` (source of truth for signatures) and `.md` docs in sync
-- **datadata-python**: `references/__builtins__.pyi` is copied from the backend `lib/python-executor/__builtins__.pyi` (source of truth for signatures) — re-copy it when the backend API changes, and keep the `.md` docs and verified `examples.md` in sync
+- **datadata-dql**: Reference changes must keep `builtins.pyi` (source of truth for signatures) and `.md` docs in sync
+- **datadata-python**: `references/builtins.pyi` is copied from the backend `lib/python-executor/builtins.pyi` (source of truth for signatures) — re-copy it when the backend API changes, and keep the `.md` docs and verified `examples.md` in sync
 - New features should provide DQL code samples (datadata-dql), not CLI subprocess calls

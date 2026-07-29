@@ -2,7 +2,7 @@
 
 > ⚠️ **重要**：`fetch()` 会根据响应头 `Content-Type` **自动解析**响应体。`resp.body` 已经是 Python 对象（dict/list），**不要**再对 `resp.body` 做字符串解析（如 `.split()`、`.strip()` 等）。
 >
-> 完整 API 签名请参考 [**builtins**.pyi](./__builtins__.pyi)。
+> 完整 API 签名请参考 [**builtins**.pyi](./builtins.pyi)。
 
 执行 HTTP 请求。
 

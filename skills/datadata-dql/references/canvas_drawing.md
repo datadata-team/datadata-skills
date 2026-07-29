@@ -5,7 +5,7 @@
 >
 > Canvas API 基于 [github.com/fogleman/gg](https://github.com/fogleman/gg) 实现。
 >
-> 完整 API 签名请参考 [**builtins**.pyi](./__builtins__.pyi)。
+> 完整 API 签名请参考 [**builtins**.pyi](./builtins.pyi)。
 
 本文档详细列出 Canvas Context 支持的所有绘制方法。
 

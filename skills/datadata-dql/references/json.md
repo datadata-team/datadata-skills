@@ -1,6 +1,6 @@
 # json 模块
 
-> 完整 API 签名请参考 [**builtins**.pyi](./__builtins__.pyi)。
+> 完整 API 签名请参考 [**builtins**.pyi](./builtins.pyi)。
 
 JSON 序列化和反序列化（内置，直接使用）。
 

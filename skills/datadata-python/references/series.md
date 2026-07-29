@@ -1,6 +1,6 @@
 # Series
 
-`Series` 是一个**即时求值**的、单一类型的列。它是 [`DataFrame`](./dataframe.md) 的组成单元，也可作为 `main()` 的返回值（转换为单列结果集）。签名以 [`__builtins__.pyi`](./__builtins__.pyi) 为准。
+`Series` 是一个**即时求值**的、单一类型的列。它是 [`DataFrame`](./dataframe.md) 的组成单元，也可作为 `main()` 的返回值（转换为单列结果集）。签名以 [`builtins.pyi`](./builtins.pyi) 为准。
 
 与惰性的 [`Expr`](./expr.md) 不同，`Series` 上的运算会**立即计算**出结果。
 

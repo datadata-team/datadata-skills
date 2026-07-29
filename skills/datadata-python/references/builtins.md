@@ -1,6 +1,6 @@
 # 全局函数与命名空间
 
-以下名称已注入 Python 脚本作用域，**无需 `import`** 即可使用。签名以 [`__builtins__.pyi`](./__builtins__.pyi) 为准。
+以下名称已注入 Python 脚本作用域，**无需 `import`** 即可使用。签名以 [`builtins.pyi`](./builtins.pyi) 为准。
 
 ## query
 

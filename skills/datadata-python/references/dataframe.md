@@ -1,6 +1,6 @@
 # DataFrame
 
-`DataFrame` 是二维、列式的表结构，由多个等长的 [`Series`](./series.md) 组成。`query()` 返回 `DataFrame`，它也是 `main()` 推荐的返回类型。签名以 [`__builtins__.pyi`](./__builtins__.pyi) 为准。
+`DataFrame` 是二维、列式的表结构，由多个等长的 [`Series`](./series.md) 组成。`query()` 返回 `DataFrame`，它也是 `main()` 推荐的返回类型。签名以 [`builtins.pyi`](./builtins.pyi) 为准。
 
 ## 构造
 

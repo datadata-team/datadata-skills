@@ -11,14 +11,14 @@ Datadata 后端新增了**第三种查询脚本类型 `python`**（与 `sql`、`
 现有 `datadata-dql` skill 教 AI 编写 DQL 脚本；现需**对称地**新增 `datadata-python` skill，教 AI 编写平台的 Python 查询脚本。
 
 **核心问题**：若缺少准确参考，AI 会把它当成完整的 Python / 真 Polars / pandas，调用大量执行器**未实现**的方法，导致脚本跑不通。
-**解决思路**：提供一份「我们有什么」的**完整、准确的正面参考**（签名以执行器的 `__builtins__.pyi` 为权威源），并配一套**全部经真实执行验证**的示例。**不使用「不支持的 API」黑名单**——用准确的正面描述收敛，而非负面清单。
+**解决思路**：提供一份「我们有什么」的**完整、准确的正面参考**（签名以执行器的 `builtins.pyi` 为权威源），并配一套**全部经真实执行验证**的示例。**不使用「不支持的 API」黑名单**——用准确的正面描述收敛，而非负面清单。
 
 ## 2. 目标与非目标
 
 **目标**
 
 - 新建 `skills/datadata-python/`，定位为**纯语言/API 参考**，结构与 `datadata-dql` 对称。
-- references 采用**细粒度拆分**；以 `__builtins__.pyi` 为签名权威源。
+- references 采用**细粒度拆分**；以 `builtins.pyi` 为签名权威源。
 - 新增 `examples.md`，覆盖**全部现有特性**，且每个示例**先经真实执行验证**再写入。
 - 把 `datadata-python` 注册为仓库第 5 个 skill，同步更新仓库元数据。
 
@@ -35,7 +35,7 @@ Datadata 后端新增了**第三种查询脚本类型 `python`**（与 `sql`、`
 skills/datadata-python/
 ├── SKILL.md                    核心规则 + 工作流 + 核心概念 + 速查表 + References 索引
 └── references/
-    ├── __builtins__.pyi        逐字复制自后端 lib/python-executor/__builtins__.pyi（签名权威源）
+    ├── builtins.pyi        逐字复制自后端 lib/python-executor/builtins.pyi（签名权威源）
     ├── builtins.md             query / fetch / args / print / pl 命名空间 + DataType 数据类型
     ├── dataframe.md            DataFrame + GroupBy 完整 API
     ├── series.md               Series 完整 API
@@ -59,7 +59,7 @@ skills/datadata-python/
 - **frontmatter `description`**：中英双语（中文触发说明 + 英文半句供 skill 路由）。要点：写 Datadata Python 查询脚本时必须先加载；数据转换/清洗/生成、Polars 风格 DataFrame、SQL 取数、HTTP 请求。
 - **核心规则（正向表述）**
   1. 脚本**必须定义 `main()`**，返回值即结果（`DataFrame` / `Series` / `list[dict]` / 其它 JSON 可序列化值）。
-  2. 编写前**必读对应 reference**；API 签名以 `references/__builtins__.pyi` 为**权威源**，严格按其声明编写。
+  2. 编写前**必读对应 reference**；API 签名以 `references/builtins.pyi` 为**权威源**，严格按其声明编写。
   3. `query` / `fetch` / `args` / `print` / `pl` / `DataFrame` / `Series` 是注入的全局名，无需 `import`；标准库可 `import`。
   4. `query()` 返回的**时间列是字符串**，需 `.str.to_datetime()` / `.str.to_date()` 转换。
   5. 不确定数据结构时，先临时 `return` 验证再写处理逻辑，不要凭猜测（沿用 dql 精神）。
@@ -70,9 +70,9 @@ skills/datadata-python/
 
 ## 6. references 内容映射（数据来源）
 
-一手来源：后端 `lib/python-executor/__builtins__.pyi`（Polars 风格 DataFrame/Series/Expr 的手写类型 stub，标注 source of truth）与 `src/fetch_prelude.py`（fetch/Response/Headers）。可参照已写好的 `datadata-docs/docs/guides/python/` 参考页改写为 **AI 面向**（更强调「必读 / 按 .pyi 声明」）。
+一手来源：后端 `lib/python-executor/builtins.pyi`（Polars 风格 DataFrame/Series/Expr 的手写类型 stub，标注 source of truth）与 `src/fetch_prelude.py`（fetch/Response/Headers）。可参照已写好的 `datadata-docs/docs/guides/python/` 参考页改写为 **AI 面向**（更强调「必读 / 按 .pyi 声明」）。
 
-- `__builtins__.pyi` — 逐字复制后端同名文件。
+- `builtins.pyi` — 逐字复制后端同名文件。
 - `builtins.md` — `query(sql, *args)`、`fetch(url, method, body, headers, timeout)` + `Response`（`ok`/`status`/`status_text`/`headers.get`/`text()`/`json()`）、`args`、`print`、`pl`（`col`/`lit`/`DataFrame`/`Series`/dtype 常量）、DataType 说明。
 - `dataframe.md` — 构造、属性（`columns`/`dtypes`/`schema`/`shape`/`height`/`width`）、`is_empty`/`select`/`with_columns`/`filter`/`group_by`、导出（`to_dicts`/`rows`/`to_dict`/`get_column`/`__getitem__`），以及 `GroupBy.agg`。
 - `series.md` — 构造、`name`/`dtype`、转换清洗（`to_list`/`cast`/`abs`/`round`/`fill_null`/`is_null`/`is_not_null`/`filter`/`alias`/`rename`）、聚合、索引、运算符重载。
@@ -118,7 +118,7 @@ skills/datadata-python/
 - 正文中文；`description` 带英文半句（供 skill 路由，与其它 skill 一致）。
 - Markdown **不换行**（仓库 `.editorconfig` / `.vscode` 约定）。
 - 沙箱相关表述与已审阅过的 `datadata-docs` 口径一致：可写「无文件系统访问、`fetch` 仅访问外部服务、结果超限截断、执行超时/内存上限」等边界，但**不暴露** SSRF 防御机制细节、`random` 不可用等实现内幕。
-- 所有函数/类签名一律以 `__builtins__.pyi` 为准，`.md` 仅作快速参考与示例。
+- 所有函数/类签名一律以 `builtins.pyi` 为准，`.md` 仅作快速参考与示例。
 
 ## 9. 仓库元数据同步（注册为第 5 个 skill）
 
@@ -134,6 +134,6 @@ skills/datadata-python/
 
 - `skills/datadata-python/` 结构完整，可 `npx skills add` 安装。
 - `examples.md` 全部示例经真实执行器验证通过；验证用临时测试文件已删除，`datadata-pegasus` 无残留改动。
-- `references/__builtins__.pyi` 与后端同名文件一致；各 `.md` 与 `.pyi` 声明一致。
+- `references/builtins.pyi` 与后端同名文件一致；各 `.md` 与 `.pyi` 声明一致。
 - 仓库元数据（AGENTS/CLAUDE/README/README_zh）均含第 5 个 skill。
 - 无「不支持的 API」负面清单；内容为正面描述。

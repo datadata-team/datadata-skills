@@ -2,7 +2,7 @@
 
 > 当脚本运行出错、性能不佳或遇到边界情况时查阅本文档。**日常编写脚本通常不需要阅读本文。**
 >
-> 完整 API 签名请参考 [**builtins**.pyi](./__builtins__.pyi)。
+> 完整 API 签名请参考 [**builtins**.pyi](./builtins.pyi)。
 
 ## 最佳实践
 

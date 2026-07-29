@@ -1,7 +1,7 @@
 # Type stub for the globals injected into RustPython-executed data scripts by
 # `python-executor`. Scripts run WITHOUT imports — every name below (the `pl`
 # module, `DataFrame`/`Series`, and the host builtins `query`/`fetch`/`args`)
-# is injected directly into script scope, so `__builtins__.pyi` is the correct
+# is injected directly into script scope, so `builtins.pyi` is the correct
 # mechanism for editor autocompletion/hover.
 #
 # Hand-written to mirror the Rust implementation. Source of truth:

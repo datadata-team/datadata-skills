@@ -1,6 +1,6 @@
 # Expr 表达式
 
-`Expr` 是一个**惰性、可组合的列表达式**，由 `pl.col(name)` 或 `pl.lit(value)` 构建，在 `DataFrame` 的 `select` / `with_columns` / `filter` 以及 `GroupBy.agg` 中被求值。签名以 [`__builtins__.pyi`](./__builtins__.pyi) 为准。
+`Expr` 是一个**惰性、可组合的列表达式**，由 `pl.col(name)` 或 `pl.lit(value)` 构建，在 `DataFrame` 的 `select` / `with_columns` / `filter` 以及 `GroupBy.agg` 中被求值。签名以 [`builtins.pyi`](./builtins.pyi) 为准。
 
 ```python
 pl.col("amount")                        # 引用列

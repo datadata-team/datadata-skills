@@ -48,7 +48,7 @@ df = query("SELECT * FROM users")
 
 ### 3. API 签名的权威来源
 
-所有函数 / 类的完整签名以 [`__builtins__.pyi`](./references/__builtins__.pyi) 为准，各 `.md` 文件仅为快速参考和示例说明。**严格按 `.pyi` 中声明的方法编写**——数据处理 API 是 Polars 风格，但只实现了 `.pyi` 中列出的子集。
+所有函数 / 类的完整签名以 [`builtins.pyi`](./references/builtins.pyi) 为准，各 `.md` 文件仅为快速参考和示例说明。**严格按 `.pyi` 中声明的方法编写**——数据处理 API 是 Polars 风格，但只实现了 `.pyi` 中列出的子集。
 
 ### 4. 注入的全局名称，无需 `import`
 
@@ -130,7 +130,7 @@ Python 脚本在受限沙箱中执行，请注意以下边界：
 
 | 文档 | 说明 |
 | --- | --- |
-| [\_\_builtins\_\_.pyi](./references/__builtins__.pyi) | 全部内置类型 / 函数的类型签名（**权威来源**） |
+| [builtins.pyi](./references/builtins.pyi) | 全部内置类型 / 函数的类型签名（**权威来源**） |
 | [builtins.md](./references/builtins.md) | `query` / `fetch` / `args` / `print` / `pl` + 数据类型 |
 | [dataframe.md](./references/dataframe.md) | DataFrame + GroupBy 完整 API |
 | [series.md](./references/series.md) | Series 完整 API |

@@ -1,6 +1,6 @@
 # Series API 完整参考
 
-> **注意**：`Series` 是内置全局类型，**无需 `import`**。完整 API 签名请参考 [**builtins**.pyi](./__builtins__.pyi)。
+> **注意**：`Series` 是内置全局类型，**无需 `import`**。完整 API 签名请参考 [**builtins**.pyi](./builtins.pyi)。
 
 本文档详细列出 Series 支持的所有方法和属性。
 

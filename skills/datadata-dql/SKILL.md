@@ -49,7 +49,7 @@ DQL 基于 Starlark。**编写任何 DQL 脚本前，必须先阅读 [grammar.tx
 
 ### 4. 关于 API 文档的权威来源
 
-所有函数/类的完整签名定义以 [**builtins**.pyi](./references/__builtins__.pyi) 为准，各 `.md` 文件仅为快速参考和示例说明。
+所有函数/类的完整签名定义以 [**builtins**.pyi](./references/builtins.pyi) 为准，各 `.md` 文件仅为快速参考和示例说明。
 
 ### 5. 所有 DQL 扩展均为内置全局名称
 
@@ -176,5 +176,5 @@ square = lambda x: x * x
 
 - **语法规范**：[grammar.txt](./references/grammar.txt) — Starlark EBNF 语法（编写前必读，权威来源）
 - **Starlark 官方文档**：[Starlark 官方文档](https://github.com/bazelbuild/starlark/blob/master/spec.md)
-- **完整 API 签名**：[**builtins**.pyi](./references/__builtins__.pyi) — 所有类型提示（权威来源）
+- **完整 API 签名**：[**builtins**.pyi](./references/builtins.pyi) — 所有类型提示（权威来源）
 - **Starlark 语言**：https://github.com/bazelbuild/starlark/blob/master/spec.md — 官方 Starlark 语言规范
