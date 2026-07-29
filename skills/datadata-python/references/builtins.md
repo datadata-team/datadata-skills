@@ -111,12 +111,39 @@ def main():
 | `pl.lit(value)` | 由标量构造字面量表达式，返回 [`Expr`](./expr.md) |
 | `pl.DataFrame` | [`DataFrame`](./dataframe.md) 类型（与全局 `DataFrame` 等价） |
 | `pl.Series` | [`Series`](./series.md) 类型（与全局 `Series` 等价） |
+| `pl.when(*predicates)` | 条件表达式入口，链式 `.then().when().otherwise()`，返回 [`Expr`](./expr.md) |
+| `pl.cov(a, b, ddof=1)` | 两个 Series 的样本协方差（即时求值） |
+| `pl.corr(a, b, method="pearson", ...)` | 两个 Series 的相关系数（即时求值），`method` 支持 `"pearson"` / `"spearman"` |
 | `pl.Int` / `pl.Float` / `pl.Boolean` / `pl.String` / `pl.Datetime` / `pl.Date` | 数据类型常量 |
 
 ```python
 def main():
     df = query("SELECT category, amount FROM sales")
     return df.with_columns((pl.col("amount") * pl.lit(1.1)).alias("amount_with_tax"))
+```
+
+### 条件表达式 `pl.when`
+
+```python
+# when/then/otherwise 构建条件列
+df.with_columns(
+    pl.when(pl.col("amount") > 100)
+      .then(pl.lit("high"))
+      .when(pl.col("amount") > 50)
+      .then(pl.lit("mid"))
+      .otherwise(pl.lit("low"))
+      .alias("level")
+)
+```
+
+### 协方差与相关系数
+
+```python
+s1 = df.get_column("a")
+s2 = df.get_column("b")
+cov_ab = pl.cov(s1, s2)          # 样本协方差
+r = pl.corr(s1, s2)              # Pearson 相关系数（默认）
+r_spearman = pl.corr(s1, s2, method="spearman")
 ```
 
 ## 数据类型（DataType）

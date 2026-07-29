@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, Sequence, overload
+from typing import Any, Callable, Literal, Sequence, overload
 
 # ---------------------------------------------------------------------------
 # DataType
@@ -141,6 +141,382 @@ class Series:
     def last(self) -> Any:
         """The last value in the Series."""
         ...
+    def skew(self, bias: bool = ...) -> Any:
+        """Sample skewness of all non-null values (``bias=True`` default: population moment estimator)."""
+        ...
+    def kurtosis(self, fisher: bool = ..., bias: bool = ...) -> Any:
+        """Kurtosis of all non-null values (``fisher=True`` default: excess kurtosis; ``bias=True`` default)."""
+        ...
+    def mode(self) -> Series:
+        """The most frequently occurring value(s) (may return more than one)."""
+        ...
+    def quantile(self, quantile: float, interpolation: Literal["nearest"] = ...) -> Any:
+        """The value at the given quantile (0..1). Only ``interpolation="nearest"`` (the default) is implemented."""
+        ...
+    def rolling_min(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Rolling minimum over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_max(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Rolling maximum over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_sum(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Rolling sum over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_mean(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Rolling arithmetic mean over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_median(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Rolling median over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_std(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+        ddof: int = ...,
+    ) -> Series:
+        """Rolling sample standard deviation over a fixed-size window (``ddof`` default 1)."""
+        ...
+    def rolling_var(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+        ddof: int = ...,
+    ) -> Series:
+        """Rolling sample variance over a fixed-size window (``ddof`` default 1)."""
+        ...
+    def rolling_skew(
+        self,
+        window_size: int,
+        *,
+        bias: bool = ...,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Rolling skewness over a fixed-size window (no ``weights`` param, mirroring Polars)."""
+        ...
+    def rolling_kurtosis(
+        self,
+        window_size: int,
+        *,
+        fisher: bool = ...,
+        bias: bool = ...,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Rolling kurtosis over a fixed-size window (no ``weights`` param, mirroring Polars)."""
+        ...
+    def rolling_quantile(
+        self,
+        quantile: float,
+        interpolation: Literal["nearest"] = ...,
+        window_size: int = ...,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Rolling quantile over a fixed-size window (``window_size`` default 2; only ``"nearest"`` interpolation)."""
+        ...
+    def rolling_map(
+        self,
+        function: Callable[[Series], Any],
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Series:
+        """Apply ``function`` to each window (packaged as a ``Series``), taking its scalar return as the output."""
+        ...
+    def rolling_min_by(
+        self,
+        by: Series,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Series:
+        """Rolling minimum over a time/key window: ``by`` (another Series, assumed sorted ascending) defines each
+        row's window via a duration string (e.g. ``"2d"``); ``closed`` defaults to ``"right"``.
+        """
+        ...
+    def rolling_max_by(
+        self,
+        by: Series,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Series:
+        """Rolling maximum over a time/key window (see ``rolling_min_by``)."""
+        ...
+    def rolling_sum_by(
+        self,
+        by: Series,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Series:
+        """Rolling sum over a time/key window (see ``rolling_min_by``)."""
+        ...
+    def rolling_mean_by(
+        self,
+        by: Series,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Series:
+        """Rolling arithmetic mean over a time/key window (see ``rolling_min_by``)."""
+        ...
+    def rolling_median_by(
+        self,
+        by: Series,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Series:
+        """Rolling median over a time/key window (see ``rolling_min_by``)."""
+        ...
+    def rolling_std_by(
+        self,
+        by: Series,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+        ddof: int = ...,
+    ) -> Series:
+        """Rolling sample standard deviation over a time/key window (``ddof`` default 1; see ``rolling_min_by``)."""
+        ...
+    def rolling_var_by(
+        self,
+        by: Series,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+        ddof: int = ...,
+    ) -> Series:
+        """Rolling sample variance over a time/key window (``ddof`` default 1; see ``rolling_min_by``)."""
+        ...
+    def ewm_mean(
+        self,
+        *,
+        com: float | None = ...,
+        span: float | None = ...,
+        half_life: float | None = ...,
+        alpha: float | None = ...,
+        adjust: bool = ...,
+        min_samples: int = ...,
+        ignore_nulls: bool = ...,
+    ) -> Series:
+        """Exponentially-weighted moving average. Provide exactly one of ``com``/``span``/``half_life``/``alpha``."""
+        ...
+    def ewm_sum(
+        self,
+        *,
+        com: float | None = ...,
+        span: float | None = ...,
+        half_life: float | None = ...,
+        alpha: float | None = ...,
+        adjust: bool = ...,
+        min_samples: int = ...,
+        ignore_nulls: bool = ...,
+    ) -> Series:
+        """Exponentially-weighted moving sum (see ``ewm_mean`` for the alpha-source params)."""
+        ...
+    def ewm_var(
+        self,
+        *,
+        com: float | None = ...,
+        span: float | None = ...,
+        half_life: float | None = ...,
+        alpha: float | None = ...,
+        adjust: bool = ...,
+        min_samples: int = ...,
+        ignore_nulls: bool = ...,
+        bias: bool = ...,
+    ) -> Series:
+        """Exponentially-weighted moving variance (``bias=False`` default applies a reliability correction)."""
+        ...
+    def ewm_std(
+        self,
+        *,
+        com: float | None = ...,
+        span: float | None = ...,
+        half_life: float | None = ...,
+        alpha: float | None = ...,
+        adjust: bool = ...,
+        min_samples: int = ...,
+        ignore_nulls: bool = ...,
+        bias: bool = ...,
+    ) -> Series:
+        """Exponentially-weighted moving standard deviation (see ``ewm_var``)."""
+        ...
+    def diff(self, n: int = ..., null_behavior: Literal["ignore"] = ...) -> Series:
+        """Difference between each element and the one ``n`` positions before it (default ``n=1``).
+
+        Only ``null_behavior="ignore"`` (the default) is implemented; passing ``"drop"`` raises
+        (it would change the output length, which is out of scope).
+        """
+        ...
+    def cum_sum(self, *, reverse: bool = ...) -> Series:
+        """Cumulative sum (``reverse=True`` accumulates from the end)."""
+        ...
+    def cum_prod(self, *, reverse: bool = ...) -> Series:
+        """Cumulative product (``reverse=True`` accumulates from the end)."""
+        ...
+    def pct_change(self, n: int = ...) -> Series:
+        """Percentage change versus the value ``n`` positions before (default ``n=1``); always returns Float64."""
+        ...
+    def sort(self, *, descending: bool = ..., nulls_last: bool = ...) -> Series:
+        """Sort by value (stable). Nulls sort first by default, or last with ``nulls_last=True``."""
+        ...
+    def forward_fill(self, limit: int | None = ...) -> Series:
+        """Fill nulls with the last non-null value seen (``limit`` caps consecutive fills; ``None`` = unlimited)."""
+        ...
+    def backward_fill(self, limit: int | None = ...) -> Series:
+        """Fill nulls with the next non-null value (``limit`` caps consecutive fills; ``None`` = unlimited)."""
+        ...
+    def unique(self, *, maintain_order: bool = ...) -> Series:
+        """Distinct values (``maintain_order=True`` preserves first-occurrence order instead of sorting)."""
+        ...
+    def shift(self, n: int = ..., *, fill_value: Any | None = ...) -> Series:
+        """Shift values by ``n`` positions (default 1; negative shifts toward the start).
+
+        Vacated positions become null, or ``fill_value`` if given.
+        """
+        ...
+    def interpolate(self, method: Literal["linear"] = ...) -> Series:
+        """Fill nulls by linear interpolation between the nearest non-null neighbors.
+
+        Only ``method="linear"`` (the default) is implemented. Leading/trailing
+        nulls with no non-null value on one side stay null.
+        """
+        ...
+    def head(self, n: int = ...) -> Series:
+        """The first ``n`` rows (default 5; negative ``n`` drops the last ``|n|`` rows instead)."""
+        ...
+    def tail(self, n: int = ...) -> Series:
+        """The last ``n`` rows (default 5; negative ``n`` drops the first ``|n|`` rows instead)."""
+        ...
+    def slice(self, offset: int, length: int | None = ...) -> Series:
+        """Rows from ``offset`` (negative counts from the end) for ``length`` rows (``None`` = to the end)."""
+        ...
+    def gather_every(self, n: int, offset: int = ...) -> Series:
+        """Every ``n``-th row, starting at ``offset`` (default 0). ``n`` must be >= 1."""
+        ...
+    def sample(
+        self,
+        n: int | None = ...,
+        *,
+        fraction: float | None = ...,
+        with_replacement: bool = ...,
+        shuffle: bool = ...,
+        seed: int | None = ...,
+    ) -> Series:
+        """Randomly sample rows. Give either ``n`` (row count) or ``fraction`` (of height), not both;
+        neither given defaults to ``n=1``. Without replacement, sampling more rows than exist raises.
+
+        ``shuffle=False`` (default) returns picked rows in original order; ``shuffle=True`` returns
+        them in draw order. ``seed=None`` draws from a per-execution global PRNG seeded once from host
+        entropy (so results vary run to run and successive calls don't repeat); a fixed ``seed`` makes
+        the draw reproducible **within this engine only** — it is NOT byte-identical to what Polars'
+        own sampling would pick for the same seed.
+        """
+        ...
+    def top_k(self, k: int = ...) -> Series:
+        """The ``k`` largest values (default ``k=5``)."""
+        ...
+    def bottom_k(self, k: int = ...) -> Series:
+        """The ``k`` smallest values (default ``k=5``)."""
+        ...
+    def replace_strict(
+        self,
+        old: Sequence[Any],
+        new: Sequence[Any],
+        *,
+        default: Any | None = ...,
+        return_dtype: DataType | None = ...,
+    ) -> Series:
+        """Replace each value found in ``old`` with the value at the same position in ``new``.
+
+        A value not found in ``old`` becomes ``default`` (``None`` if omitted) rather than passing through
+        unchanged — this is the "strict" variant.
+        """
+        ...
+    def value_counts(
+        self,
+        *,
+        sort: bool = ...,
+        parallel: bool = ...,
+        name: str | None = ...,
+        normalize: bool = ...,
+    ) -> DataFrame:
+        """Count occurrences of each distinct value, returned as a two-column DataFrame.
+
+        The value column keeps this Series' ``name``; the count column is named ``"count"`` (or
+        ``"proportion"`` when ``normalize=True``) unless overridden via ``name``. ``parallel`` is accepted but
+        not used (no parallel implementation).
+        """
+        ...
+    def map_elements(
+        self,
+        function: Callable[[Any], Any],
+        return_dtype: DataType | None = ...,
+        skip_nulls: bool = ...,
+    ) -> Series:
+        """Apply a Python callback to each element, returning a new Series.
+
+        ``skip_nulls`` (default ``True``) skips calling ``function`` on null
+        elements (the output stays null there). ``return_dtype`` is inferred
+        from the callback's results when not given.
+        """
+        ...
     def __len__(self) -> int: ...
     def __getitem__(self, index: int) -> Any:
         """Get the value at ``index`` (supports negative indices)."""
@@ -238,6 +614,347 @@ class Expr:
         ...
     def last(self) -> Expr:
         """Aggregation: the last value."""
+        ...
+    def skew(self, bias: bool = ...) -> Expr:
+        """Aggregation: sample skewness (``bias=True`` default: population moment estimator)."""
+        ...
+    def kurtosis(self, fisher: bool = ..., bias: bool = ...) -> Expr:
+        """Aggregation: kurtosis (``fisher=True`` default: excess kurtosis; ``bias=True`` default)."""
+        ...
+    def mode(self) -> Expr:
+        """Aggregation: the most frequently occurring value(s)."""
+        ...
+    def quantile(self, quantile: float, interpolation: Literal["nearest"] = ...) -> Expr:
+        """Aggregation: the value at the given quantile (0..1). Only ``interpolation="nearest"`` is implemented."""
+        ...
+    def rolling_min(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Rolling minimum over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_max(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Rolling maximum over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_sum(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Rolling sum over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_mean(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Rolling arithmetic mean over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_median(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Rolling median over a fixed-size window (``weights`` unsupported — must be ``None``)."""
+        ...
+    def rolling_std(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+        ddof: int = ...,
+    ) -> Expr:
+        """Rolling sample standard deviation over a fixed-size window (``ddof`` default 1)."""
+        ...
+    def rolling_var(
+        self,
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+        ddof: int = ...,
+    ) -> Expr:
+        """Rolling sample variance over a fixed-size window (``ddof`` default 1)."""
+        ...
+    def rolling_skew(
+        self,
+        window_size: int,
+        *,
+        bias: bool = ...,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Rolling skewness over a fixed-size window (no ``weights`` param, mirroring Polars)."""
+        ...
+    def rolling_kurtosis(
+        self,
+        window_size: int,
+        *,
+        fisher: bool = ...,
+        bias: bool = ...,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Rolling kurtosis over a fixed-size window (no ``weights`` param, mirroring Polars)."""
+        ...
+    def rolling_quantile(
+        self,
+        quantile: float,
+        interpolation: Literal["nearest"] = ...,
+        window_size: int = ...,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Rolling quantile over a fixed-size window (``window_size`` default 2; only ``"nearest"`` interpolation)."""
+        ...
+    def rolling_map(
+        self,
+        function: Callable[[Series], Any],
+        window_size: int,
+        weights: None = ...,
+        *,
+        min_samples: int | None = ...,
+        center: bool = ...,
+    ) -> Expr:
+        """Apply ``function`` to each window (packaged as a ``Series``), taking its scalar return as the output."""
+        ...
+    def rolling_min_by(
+        self,
+        by: str | Expr,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Expr:
+        """Rolling minimum over a time/key window: ``by`` (a column name or another expression, assumed sorted
+        ascending when evaluated) defines each row's window via a duration string (e.g. ``"2d"``); ``closed``
+        defaults to ``"right"``.
+        """
+        ...
+    def rolling_max_by(
+        self,
+        by: str | Expr,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Expr:
+        """Rolling maximum over a time/key window (see ``rolling_min_by``)."""
+        ...
+    def rolling_sum_by(
+        self,
+        by: str | Expr,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Expr:
+        """Rolling sum over a time/key window (see ``rolling_min_by``)."""
+        ...
+    def rolling_mean_by(
+        self,
+        by: str | Expr,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Expr:
+        """Rolling arithmetic mean over a time/key window (see ``rolling_min_by``)."""
+        ...
+    def rolling_median_by(
+        self,
+        by: str | Expr,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+    ) -> Expr:
+        """Rolling median over a time/key window (see ``rolling_min_by``)."""
+        ...
+    def rolling_std_by(
+        self,
+        by: str | Expr,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+        ddof: int = ...,
+    ) -> Expr:
+        """Rolling sample standard deviation over a time/key window (``ddof`` default 1; see ``rolling_min_by``)."""
+        ...
+    def rolling_var_by(
+        self,
+        by: str | Expr,
+        window: str,
+        *,
+        min_samples: int = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+        ddof: int = ...,
+    ) -> Expr:
+        """Rolling sample variance over a time/key window (``ddof`` default 1; see ``rolling_min_by``)."""
+        ...
+    def ewm_mean(
+        self,
+        *,
+        com: float | None = ...,
+        span: float | None = ...,
+        half_life: float | None = ...,
+        alpha: float | None = ...,
+        adjust: bool = ...,
+        min_samples: int = ...,
+        ignore_nulls: bool = ...,
+    ) -> Expr:
+        """Exponentially-weighted moving average. Provide exactly one of ``com``/``span``/``half_life``/``alpha``."""
+        ...
+    def ewm_sum(
+        self,
+        *,
+        com: float | None = ...,
+        span: float | None = ...,
+        half_life: float | None = ...,
+        alpha: float | None = ...,
+        adjust: bool = ...,
+        min_samples: int = ...,
+        ignore_nulls: bool = ...,
+    ) -> Expr:
+        """Exponentially-weighted moving sum (see ``ewm_mean`` for the alpha-source params)."""
+        ...
+    def ewm_var(
+        self,
+        *,
+        com: float | None = ...,
+        span: float | None = ...,
+        half_life: float | None = ...,
+        alpha: float | None = ...,
+        adjust: bool = ...,
+        min_samples: int = ...,
+        ignore_nulls: bool = ...,
+        bias: bool = ...,
+    ) -> Expr:
+        """Exponentially-weighted moving variance (``bias=False`` default applies a reliability correction)."""
+        ...
+    def ewm_std(
+        self,
+        *,
+        com: float | None = ...,
+        span: float | None = ...,
+        half_life: float | None = ...,
+        alpha: float | None = ...,
+        adjust: bool = ...,
+        min_samples: int = ...,
+        ignore_nulls: bool = ...,
+        bias: bool = ...,
+    ) -> Expr:
+        """Exponentially-weighted moving standard deviation (see ``ewm_var``)."""
+        ...
+    def diff(self, n: int = ..., null_behavior: Literal["ignore"] = ...) -> Expr:
+        """Difference between each element and the one ``n`` positions before it (default ``n=1``).
+
+        Only ``null_behavior="ignore"`` (the default) is implemented; passing ``"drop"`` raises
+        (it would change the output length, which is out of scope).
+        """
+        ...
+    def cum_sum(self, *, reverse: bool = ...) -> Expr:
+        """Cumulative sum (``reverse=True`` accumulates from the end)."""
+        ...
+    def cum_prod(self, *, reverse: bool = ...) -> Expr:
+        """Cumulative product (``reverse=True`` accumulates from the end)."""
+        ...
+    def pct_change(self, n: int = ...) -> Expr:
+        """Percentage change versus the value ``n`` positions before (default ``n=1``); always returns Float64."""
+        ...
+    def sort(self, *, descending: bool = ..., nulls_last: bool = ...) -> Expr:
+        """Sort by value (stable). Nulls sort first by default, or last with ``nulls_last=True``."""
+        ...
+    def forward_fill(self, limit: int | None = ...) -> Expr:
+        """Fill nulls with the last non-null value seen (``limit`` caps consecutive fills; ``None`` = unlimited)."""
+        ...
+    def backward_fill(self, limit: int | None = ...) -> Expr:
+        """Fill nulls with the next non-null value (``limit`` caps consecutive fills; ``None`` = unlimited)."""
+        ...
+    def unique(self, *, maintain_order: bool = ...) -> Expr:
+        """Distinct values (``maintain_order=True`` preserves first-occurrence order instead of sorting)."""
+        ...
+    def shift(self, n: int = ..., *, fill_value: Any | None = ...) -> Expr:
+        """Shift values by ``n`` positions (default 1; negative shifts toward the start).
+
+        Vacated positions become null, or ``fill_value`` if given.
+        """
+        ...
+    def interpolate(self, method: Literal["linear"] = ...) -> Expr:
+        """Fill nulls by linear interpolation between the nearest non-null neighbors.
+
+        Only ``method="linear"`` (the default) is implemented. Leading/trailing
+        nulls with no non-null value on one side stay null.
+        """
+        ...
+    def top_k(self, k: int = ...) -> Expr:
+        """The ``k`` largest values (default ``k=5``)."""
+        ...
+    def bottom_k(self, k: int = ...) -> Expr:
+        """The ``k`` smallest values (default ``k=5``)."""
+        ...
+    def replace_strict(
+        self,
+        old: Sequence[Any],
+        new: Sequence[Any],
+        *,
+        default: Any | None = ...,
+        return_dtype: DataType | None = ...,
+    ) -> Expr:
+        """Replace each value found in ``old`` with the value at the same position in ``new``.
+
+        A value not found in ``old`` becomes ``default`` (``None`` if omitted) rather than passing through
+        unchanged — this is the "strict" variant.
+        """
+        ...
+    def over(
+        self,
+        *partition_by: str | Expr,
+        mapping_strategy: Literal["group_to_rows"] = ...,
+    ) -> Expr:
+        """Window function: evaluate this expression per partition (grouped by ``partition_by``), then broadcast
+        each group's result back to its original rows. At least one ``partition_by`` column/expression is
+        required; only ``mapping_strategy="group_to_rows"`` (the default) is implemented.
+        """
+        ...
+    def map_elements(
+        self,
+        function: Callable[[Any], Any],
+        return_dtype: DataType | None = ...,
+        skip_nulls: bool = ...,
+    ) -> Expr:
+        """Apply a Python callback to each element, lazily, returning a new expression.
+
+        ``skip_nulls`` (default ``True``) skips calling ``function`` on null
+        elements (the output stays null there). ``return_dtype`` is inferred
+        from the callback's results when not given.
+        """
         ...
     @property
     def str(self) -> ExprStr:
@@ -349,6 +1066,34 @@ class ExprDt:
         ...
 
 # ---------------------------------------------------------------------------
+# when/then/otherwise (conditional expression builder), built via ``pl.when``
+# ---------------------------------------------------------------------------
+
+class When:
+    """Builder returned by ``pl.when(...)``; call ``.then()`` to attach a branch value."""
+
+    def then(self, value: Expr | Any) -> Then:
+        """Attach the value/expression used when this branch's condition is true."""
+        ...
+
+class Then:
+    """Builder returned by ``When.then()``.
+
+    Chain ``.when()`` to add further conditional branches, or finish the
+    expression with ``.otherwise()``/``.alias()``.
+    """
+
+    def when(self, condition: Expr | Any) -> When:
+        """Start another conditional branch."""
+        ...
+    def otherwise(self, value: Expr | Any) -> Expr:
+        """Finish the expression, using ``value`` where no branch condition matched."""
+        ...
+    def alias(self, name: str) -> Expr:
+        """Finish the expression (unmatched rows are null) and rename the output column."""
+        ...
+
+# ---------------------------------------------------------------------------
 # DataFrame / GroupBy
 # ---------------------------------------------------------------------------
 
@@ -394,6 +1139,102 @@ class DataFrame:
     def is_empty(self) -> bool:
         """Whether the DataFrame has zero rows."""
         ...
+    def head(self, n: int = ...) -> DataFrame:
+        """The first ``n`` rows (default 5; negative ``n`` drops the last ``|n|`` rows instead)."""
+        ...
+    def tail(self, n: int = ...) -> DataFrame:
+        """The last ``n`` rows (default 5; negative ``n`` drops the first ``|n|`` rows instead)."""
+        ...
+    def limit(self, n: int = ...) -> DataFrame:
+        """Alias for ``head``."""
+        ...
+    def slice(self, offset: int, length: int | None = ...) -> DataFrame:
+        """Rows from ``offset`` (negative counts from the end) for ``length`` rows (``None`` = to the end)."""
+        ...
+    def gather_every(self, n: int, offset: int = ...) -> DataFrame:
+        """Every ``n``-th row, starting at ``offset`` (default 0). ``n`` must be >= 1."""
+        ...
+    def sample(
+        self,
+        n: int | None = ...,
+        *,
+        fraction: float | None = ...,
+        with_replacement: bool = ...,
+        shuffle: bool = ...,
+        seed: int | None = ...,
+    ) -> DataFrame:
+        """Randomly sample rows. Give either ``n`` (row count) or ``fraction`` (of height), not both;
+        neither given defaults to ``n=1``. Without replacement, sampling more rows than exist raises.
+
+        ``shuffle=False`` (default) returns picked rows in original order; ``shuffle=True`` returns
+        them in draw order. ``seed=None`` draws from a per-execution global PRNG seeded once from host
+        entropy (so results vary run to run and successive calls don't repeat); a fixed ``seed`` makes
+        the draw reproducible **within this engine only** — it is NOT byte-identical to what Polars'
+        own sampling would pick for the same seed.
+        """
+        ...
+    def unique(
+        self,
+        subset: str | Sequence[str] | None = ...,
+        *,
+        keep: Literal["first", "last", "any", "none"] = ...,
+        maintain_order: bool = ...,
+    ) -> DataFrame:
+        """Drop duplicate rows, comparing only ``subset`` columns (default: all columns).
+
+        ``keep`` picks which row of each duplicate group survives: ``"first"``/``"any"`` keep the
+        first, ``"last"`` the last, ``"none"`` drops every row that has any duplicate. ``maintain_order``
+        is accepted for Polars API compatibility but has no effect — output order is already
+        first-occurrence-stable.
+        """
+        ...
+    def n_unique(self, subset: str | Sequence[str] | None = ...) -> int:
+        """Count of distinct rows, comparing only ``subset`` columns (default: all columns)."""
+        ...
+    def sort(
+        self,
+        by: str | Sequence[str],
+        *,
+        descending: bool | Sequence[bool] = ...,
+        nulls_last: bool | Sequence[bool] = ...,
+        maintain_order: bool = ...,
+    ) -> DataFrame:
+        """Sort rows by one or more columns (stable). ``by`` is a column name or list of column names
+        (no expression support). ``descending``/``nulls_last`` each take either a single bool (broadcast
+        to every sort key) or a list of bools matching ``by`` in length (per-key control). Sorting is
+        already stable, so ``maintain_order`` is accepted but has no additional effect.
+        """
+        ...
+    def sum(self) -> DataFrame:
+        """Sum each column independently, collapsed to a single row. Columns that don't support
+        summation (e.g. strings) become null rather than raising."""
+        ...
+    def mean(self) -> DataFrame:
+        """Arithmetic mean of each column independently, collapsed to a single row."""
+        ...
+    def min(self) -> DataFrame:
+        """Minimum of each column independently, collapsed to a single row."""
+        ...
+    def max(self) -> DataFrame:
+        """Maximum of each column independently, collapsed to a single row."""
+        ...
+    def median(self) -> DataFrame:
+        """Median of each column independently, collapsed to a single row."""
+        ...
+    def std(self) -> DataFrame:
+        """Sample standard deviation of each column independently, collapsed to a single row."""
+        ...
+    def var(self) -> DataFrame:
+        """Sample variance of each column independently, collapsed to a single row."""
+        ...
+    def count(self) -> DataFrame:
+        """Non-null count of each column independently, collapsed to a single row."""
+        ...
+    def shift(self, n: int = ..., *, fill_value: Any | None = ...) -> DataFrame:
+        """Shift every column's values by ``n`` positions (default 1; negative shifts toward the
+        start). Vacated positions become null, or ``fill_value`` if given. Column names/count unchanged.
+        """
+        ...
     def select(self, *exprs: Expr | str) -> DataFrame:
         """Evaluate expressions (or bare column names) into a new DataFrame."""
         ...
@@ -405,6 +1246,106 @@ class DataFrame:
         ...
     def group_by(self, *keys: str) -> GroupBy:
         """Group rows by one or more column names."""
+        ...
+    def group_by_dynamic(
+        self,
+        index_column: str,
+        *,
+        every: str,
+        period: str | None = ...,
+        offset: str | None = ...,
+        closed: Literal["left", "right", "both", "none"] = ...,
+        label: Literal["left", "right", "datapoint"] = ...,
+        group_by: str | Sequence[str] | None = ...,
+        start_by: Literal["window"] = ...,
+    ) -> DynamicGroupBy:
+        """Group rows into dynamic (rolling) time windows over ``index_column``.
+
+        ``index_column`` must be Datetime or Date. ``every`` is the step between
+        window starts (duration string, e.g. ``"2d"``); ``period`` is the window
+        width and defaults to ``every`` (tumbling windows). ``offset`` shifts the
+        window boundaries and defaults to no offset. ``closed`` picks which
+        boundary is inclusive (default ``"left"``); ``label`` picks which
+        boundary is used for the window's index value in the output (default
+        ``"left"``). ``group_by`` additionally partitions rows by key column(s)
+        before windowing. Only ``start_by="window"`` is supported.
+        """
+        ...
+    def upsample(
+        self,
+        time_column: str,
+        *,
+        every: str,
+        group_by: str | Sequence[str] | None = ...,
+        maintain_order: bool = ...,
+    ) -> DataFrame:
+        """Insert missing rows to make ``time_column`` a regular grid stepped by ``every``.
+
+        ``time_column`` must be Datetime or Date. Grid points that don't match
+        an existing row are inserted with all other columns null (use
+        ``Expr.forward_fill`` / ``backward_fill`` afterwards to fill them).
+        ``group_by`` builds one independent grid per key group. Rows whose
+        ``time_column`` value falls off the regular grid are dropped from the
+        output; when multiple rows share a grid timestamp, the first is kept.
+        """
+        ...
+    def join(
+        self,
+        other: DataFrame,
+        on: str | Sequence[str] | None = ...,
+        how: Literal["inner", "left", "right", "full", "cross", "semi", "anti"] = ...,
+        *,
+        left_on: str | Sequence[str] | None = ...,
+        right_on: str | Sequence[str] | None = ...,
+        suffix: str = ...,
+        nulls_equal: bool = ...,
+        coalesce: bool | None = ...,
+    ) -> DataFrame:
+        """Join with another DataFrame.
+
+        Provide either ``on`` (same key name(s) on both sides) or both
+        ``left_on``/``right_on``. ``how`` defaults to ``"inner"``; ``"outer"`` is
+        accepted as an alias for ``"full"``. ``how="cross"`` takes no keys and
+        produces the Cartesian product. ``suffix`` disambiguates overlapping
+        non-key column names. ``nulls_equal`` controls whether null keys match
+        each other (default ``False``). ``coalesce`` merges each side's key
+        column into one; left unset it defaults to ``True`` for every ``how``
+        except ``"full"`` (where both key columns are kept, matching Polars).
+        """
+        ...
+    def join_where(self, other: DataFrame, *predicates: Expr, suffix: str = ...) -> DataFrame:
+        """Inner join on arbitrary (non-equi) predicate expressions, AND-ed together.
+
+        Builds the Cartesian product internally, then filters by the
+        predicates. A predicate referencing a right-table column whose name
+        collides with a left-table column must use the ``suffix``-qualified name.
+        """
+        ...
+    def join_asof(
+        self,
+        other: DataFrame,
+        *,
+        on: str | None = ...,
+        left_on: str | None = ...,
+        right_on: str | None = ...,
+        by: str | Sequence[str] | None = ...,
+        by_left: str | Sequence[str] | None = ...,
+        by_right: str | Sequence[str] | None = ...,
+        strategy: Literal["backward", "forward", "nearest"] = ...,
+        suffix: str = ...,
+        tolerance: int | float | str | None = ...,
+        allow_exact_matches: bool = ...,
+        coalesce: bool = ...,
+    ) -> DataFrame:
+        """Nearest-key join against a single key column (Polars-style asof join).
+
+        Provide either ``on`` (same key name on both sides) or both
+        ``left_on``/``right_on``; optionally add exact-match grouping key(s)
+        via ``by`` or ``by_left``/``by_right``. ``strategy`` picks the match
+        direction (default ``"backward"``). ``tolerance`` bounds how far a
+        match may be — a number for numeric keys, or a duration string (e.g.
+        ``"1d"``) when the key is Datetime/Date. ``coalesce`` defaults to ``True``.
+        """
         ...
     def to_dicts(self) -> list[dict[str, Any]]:
         """Convert to a list of row dicts."""
@@ -431,6 +1372,56 @@ class GroupBy:
 
     def agg(self, *exprs: Expr | str) -> DataFrame:
         """Aggregate each group; every expression must reduce to a single value."""
+        ...
+    def sum(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).sum() for c in non-key columns)``."""
+        ...
+    def mean(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).mean() for c in non-key columns)``."""
+        ...
+    def min(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).min() for c in non-key columns)``."""
+        ...
+    def max(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).max() for c in non-key columns)``."""
+        ...
+    def median(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).median() for c in non-key columns)``."""
+        ...
+    def n_unique(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).n_unique() for c in non-key columns)``."""
+        ...
+    def first(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).first() for c in non-key columns)``."""
+        ...
+    def last(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).last() for c in non-key columns)``."""
+        ...
+    def count(self) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).count() for c in non-key columns)``."""
+        ...
+    def quantile(self, quantile: float, interpolation: Literal["nearest"] = ...) -> DataFrame:
+        """Shortcut for ``.agg(pl.col(c).quantile(quantile) for c in non-key columns)``."""
+        ...
+    def len(self) -> DataFrame:
+        """Group sizes, as a two-column DataFrame of the group key(s) plus a ``"len"`` count column."""
+        ...
+    def map_groups(self, function: Callable[[DataFrame], DataFrame]) -> DataFrame:
+        """Apply ``function`` to each group (as a DataFrame), concatenating the returned DataFrames.
+
+        Every group's returned DataFrame must share the same column names.
+        """
+        ...
+
+class DynamicGroupBy:
+    """A dynamic (rolling) time-window view of a DataFrame, produced by ``DataFrame.group_by_dynamic``."""
+
+    def agg(self, *exprs: Expr | str) -> DataFrame:
+        """Aggregate each time window; every expression must reduce to a single value.
+
+        Output column order: ``group_by`` key(s) (if any), the window's index
+        label column (named after ``index_column``), then the aggregated columns.
+        """
         ...
 
 # ---------------------------------------------------------------------------
@@ -496,6 +1487,31 @@ class _Pl:
         ...
     def lit(self, value: int | float | str | bool | None) -> Expr:
         """Build a literal expression from a scalar value."""
+        ...
+    def when(self, *predicates: Expr | Any) -> When:
+        """Start a conditional expression; multiple predicates are AND-ed together.
+
+        Chain ``.then(value)`` on the result, then optionally more
+        ``.when(...).then(...)`` branches, and finish with ``.otherwise(value)``
+        or ``.alias(name)`` (unmatched rows are null if omitted).
+        """
+        ...
+    def cov(self, a: Series, b: Series, ddof: int = ...) -> Any:
+        """Sample covariance between two Series (eager only — ``a``/``b`` must be ``Series``, not ``Expr``)."""
+        ...
+    def corr(
+        self,
+        a: Series,
+        b: Series,
+        method: Literal["pearson", "spearman"] = ...,
+        *,
+        ddof: int | None = ...,
+        propagate_nans: bool = ...,
+    ) -> Any:
+        """Correlation coefficient between two Series (eager only). ``ddof``/``propagate_nans`` are accepted for
+        Polars API compatibility but not used — both the Pearson and Spearman implementations fix ``ddof=1``
+        and drop pairs where either side is null (rather than propagating NaN).
+        """
         ...
 
 pl: _Pl

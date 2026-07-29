@@ -91,11 +91,12 @@ def main():
 
 ## 核心概念
 
-- **DataFrame** — 二维、列式的表结构，由多个等长的 `Series` 组成；`query()` 返回 DataFrame，也是 `main()` 推荐的返回类型
-- **Series** — 一维、单一类型、**即时求值**的列
+- **DataFrame** — 二维、列式的表结构，由多个等长的 `Series` 组成；`query()` 返回 DataFrame，也是 `main()` 推荐的返回类型。支持 `join` / `join_where` / `join_asof`、`sort`、`group_by_dynamic` 时间窗口分组、`upsample` 等
+- **Series** — 一维、单一类型、**即时求值**的列。支持滚动窗口（`rolling_*`/`rolling_*_by`）、指数加权（`ewm_*`）、变换（`diff`/`cum_sum`/`shift`/`pct_change`）等
 - **Expr** — 惰性列表达式，由 `pl.col()` / `pl.lit()` 构建，在 `select` / `with_columns` / `filter` / `group_by().agg()` 中求值；含 `.str`（字符串）和 `.dt`（日期时间）命名空间。**注意：对 Expr 做比较运算返回 Expr（惰性布尔表达式），而非 Python bool**
-- **pl** — 命名空间，提供 `pl.col` / `pl.lit` 构造器、`DataFrame` / `Series` 类型，以及数据类型常量
+- **pl** — 命名空间，提供 `pl.col` / `pl.lit` 构造器、`pl.when` 条件表达式、`pl.cov` / `pl.corr` 统计函数、`DataFrame` / `Series` 类型，以及数据类型常量
 - **DataType** — `pl.Int` / `pl.Float` / `pl.Boolean` / `pl.String` / `pl.Datetime` / `pl.Date`（精度不区分：`pl.Int32 == pl.Int64`、`pl.Float32 == pl.Float64`）
+- **When / Then** — `pl.when(condition).then(value).otherwise(value)` 构建条件列表达式
 
 ## 函数速查表
 
@@ -108,6 +109,8 @@ def main():
 | `args` | 调用方传入的参数（dict） | [builtins.md](./references/builtins.md) |
 | `print(...)` | 输出到脚本日志 | [builtins.md](./references/builtins.md) |
 | `pl.col(name)` / `pl.lit(value)` | 构造列表达式 Expr | [expr.md](./references/expr.md) |
+| `pl.when(condition).then(v).otherwise(v)` | 条件表达式（返回 Expr） | [expr.md](./references/expr.md) |
+| `pl.cov(a, b)` / `pl.corr(a, b)` | 两个 Series 的协方差 / 相关系数 | [builtins.md](./references/builtins.md) |
 | `DataFrame(...)` | 二维列式表 | [dataframe.md](./references/dataframe.md) |
 | `Series(...)` | 一维列 | [series.md](./references/series.md) |
 

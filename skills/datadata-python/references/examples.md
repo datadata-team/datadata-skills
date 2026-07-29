@@ -230,3 +230,135 @@ def main():
 ```
 
 结果：`j(string), re_ok(boolean), ceil(bigint), year(bigint), sha8(string)` → `{"x": 1}, true, 2, 2026, ca978112`
+
+## 滚动窗口
+
+```python
+def main():
+    df = DataFrame([
+        {"day": 1, "value": 10}, {"day": 2, "value": 20},
+        {"day": 3, "value": 15}, {"day": 4, "value": 30},
+        {"day": 5, "value": 25},
+    ])
+    return df.with_columns(
+        pl.col("value").rolling_mean(3).alias("ma3"),
+        pl.col("value").rolling_std(3, min_samples=2).alias("std3"),
+    )
+```
+
+## 指数加权移动
+
+```python
+def main():
+    df = query("SELECT date, price FROM stock_prices ORDER BY date")
+    return df.with_columns(
+        pl.col("price").ewm_mean(span=7).alias("ewm_7"),
+        pl.col("price").ewm_std(span=7).alias("ewm_std_7"),
+    )
+```
+
+## 条件表达式 when/then/otherwise
+
+```python
+def main():
+    df = query("SELECT product, amount FROM orders")
+    return df.with_columns(
+        pl.when(pl.col("amount") >= 1000).then(pl.lit("大额"))
+        .when(pl.col("amount") >= 500).then(pl.lit("中额"))
+        .otherwise(pl.lit("小额"))
+        .alias("order_level")
+    )
+```
+
+## 时间窗口分组 group_by_dynamic
+
+```python
+def main():
+    df = query("SELECT created_at, amount FROM orders")
+    df = df.with_columns(pl.col("created_at").str.to_datetime())
+    return df.group_by_dynamic("created_at", every="7d").agg(
+        pl.col("amount").sum().alias("weekly_sum"),
+        pl.col("amount").count().alias("order_count"),
+    )
+```
+
+## Join
+
+```python
+def main():
+    users = query("SELECT id, name FROM users")
+    orders = query("SELECT user_id, amount FROM orders")
+    return orders.join(users, left_on="user_id", right_on="id", how="left")
+```
+
+## 窗口函数 over
+
+```python
+def main():
+    df = query("SELECT category, product, amount FROM orders")
+    return df.with_columns(
+        (pl.col("amount") / pl.col("amount").sum().over("category") * 100)
+        .alias("pct_of_category")
+    )
+```
+
+## 累计求和与差值
+
+```python
+def main():
+    df = query("SELECT date, amount FROM daily_sales ORDER BY date")
+    return df.with_columns(
+        pl.col("amount").cum_sum().alias("cumulative"),
+        pl.col("amount").diff(1).alias("day_change"),
+        pl.col("amount").pct_change(1).alias("day_pct"),
+    )
+```
+
+## 排序与选取
+
+```python
+def main():
+    df = query("SELECT * FROM products")
+    return df.sort("price", descending=True).head(10)
+```
+
+## 值频次统计
+
+```python
+def main():
+    df = query("SELECT category FROM products")
+    return df.get_column("category").value_counts(sort=True)
+```
+
+## 元素级映射
+
+```python
+def main():
+    df = query("SELECT name, score FROM students")
+    return df.with_columns(
+        pl.col("score")
+        .map_elements(lambda x: "优秀" if x >= 90 else ("良好" if x >= 75 else "及格"))
+        .alias("grade")
+    )
+```
+
+## 去重与唯一值
+
+```python
+def main():
+    df = query("SELECT * FROM logs")
+    return df.unique(subset=["user_id", "event"], keep="first")
+```
+
+## 位移与填充
+
+```python
+def main():
+    df = query("SELECT date, value FROM metrics ORDER BY date")
+    df = df.with_columns(
+        pl.col("value").shift(1).alias("prev_value"),
+    )
+    return df.with_columns(
+        pl.col("value").forward_fill().alias("filled"),
+    )
+```
